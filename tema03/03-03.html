@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistemas Expertos - Modelo Clásico</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>Sistemas Expertos - Modelo Clásico</div>
+    </header>
+    <section class="contenido-didactico">
+        <h1>3. Dinámica de un sistema experto</h1>
+        <p>El objetivo fundamental de estos sistemas es lograr que la información crítica del dominio sea explícita y accesible, no enterrada en el código del programa. A diferencia de los programas informáticos tradicionales, donde toda la lógica y las reglas de negocio están incrustadas directamente en el código de programación (lo que dificulta su modificación), en un sistema experto las reglas deben expresarse de manera intuitiva.</p>
+        
+        <p>Esto permite que los expertos del dominio específico puedan revisar, editar y actualizar esas reglas sin necesidad de ser especialistas en informática o programación. Esta característica facilita enormemente un desarrollo rápido del sistema y un mantenimiento sencillo a lo largo del tiempo.</p>
+
+        <p class="importante">Mientras que un sistema de base de datos tradicional solo puede recuperar y mostrar información que existe explícitamente almacenada en sus tablas, un sistema experto tiene la capacidad de generar información nueva que no está explícitamente almacenada. Lo hace mediante el razonamiento lógico con los elementos disponibles en su base de conocimientos, actuando efectivamente como un intermediario inteligente entre el conocimiento almacenado y el usuario que necesita respuestas.</p>
+
+        <h2>3.1. Tipos de sistemas expertos</h2>
+        <p>Existen tres tipos principales de sistemas expertos, cada uno con su propia forma de abordar los problemas:</p>
+
+        <h3>Basados en reglas (RBR - Rule-Based Reasoning)</h3>
+        <p>Estos sistemas aplican conjuntos de reglas predefinidas y comparan los resultados obtenidos. Frecuentemente utilizan lógica difusa (<em>fuzzy logic</em>) para su evaluación, lo que les permite manejar situaciones donde las respuestas no son simplemente verdadero o falso, sino que tienen grados de certeza.</p>
+
+        <h3>Basados en casos (CBR - Case-Based Reasoning)</h3>
+        <p>Estos sistemas solucionan problemas nuevos adaptando y reutilizando soluciones que funcionaron para problemas similares en el pasado. Mantienen una biblioteca de casos resueltos y buscan similitudes con el problema actual para proponer soluciones.</p>
+
+        <h3>Basados en redes bayesianas</h3>
+        <p>Son sistemas de naturaleza probabilística que utilizan el Teorema de Bayes (un principio matemático de probabilidad condicional) para estimar las probabilidades de variables desconocidas. Se basan en un gráfico que representa las dependencias entre diferentes variables del problema.</p>
+
+        <h2>3.2. Representación del conocimiento</h2>
+        <p>Existen diversas estructuras básicas para representar el conocimiento dentro de un sistema experto:</p>
+
+        <figure>
+            <img src="https://pfst.cf2.poecdn.net/base/image/b71c5423d390177952fef897344d0d662ad8cb91749023ff3b984296f7f22755?w=1536&h=1024" alt="Estructuras de representación del conocimiento">
+            <figcaption>Las estructuras de representación del conocimiento son modelos abstractos que requieren visualización para entender cómo organizan y conectan la información de diferentes maneras</figcaption>
+        </figure>
+
+        <h3>Reglas de producción</h3>
+        <p>Son estructuras condicionales que siguen el formato "SI se cumple esta premisa, ENTONCES se obtiene esta conclusión o se ejecuta esta acción". Son las más comunes y fáciles de entender.</p>
+
+        <h3>Lógica proposicional</h3>
+        <p>Esta estructura separa claramente los elementos que constituyen el conocimiento de los mecanismos que controlan cómo opera el sistema, facilitando la modificación independiente de cada parte.</p>
+
+        <h3>Redes semánticas</h3>
+        <p>Son representaciones visuales similares a mapas conceptuales, donde los conceptos se representan como nodos y las relaciones entre ellos como enlaces o lazos que los conectan.</p>
+
+        <h3>Marcos (frames)</h3>
+        <p>Son estructuras de datos que asocian propiedades específicas y atributos característicos a cada concepto del dominio, organizando la información de manera jerárquica.</p>
+
+        <h3>Objetos</h3>
+        <p>Son entidades independientes y autocontenidas utilizadas en entornos de programación orientada a objetos, que encapsulan tanto datos como los métodos que operan sobre esos datos.</p>
+
+        <h3>Representaciones múltiples</h3>
+        <p>Muchos sistemas expertos combinan varias de estas formas de representación. Pueden ser declarativas (como reglas y redes, que expresan qué es cierto), procedimentales (que expresan cómo hacer algo mediante relaciones explícitas, aunque son más difíciles de modificar), o mixtas que combinan ambos enfoques.</p>
+
+        <h2>3.3. Mecanismos de razonamiento</h2>
+        <p>Los sistemas expertos utilizan diferentes modos de razonamiento para llegar a conclusiones:</p>
+
+        <figure>
+            <img src="https://pfst.cf2.poecdn.net/base/image/847969583b1787ea536bb854d9a923c8e1f9282d865ca0c1de8c95a881d04e78?w=1536&h=1024" alt="Mecanismos de razonamiento">
+            <figcaption>Los mecanismos de razonamiento son procesos dinámicos complejos. Un diagrama comparativo permite visualizar claramente las diferentes direcciones y patrones de pensamiento que sigue cada tipo</figcaption>
+        </figure>
+
+        <h3>Encadenamiento hacia delante (forward chaining)</h3>
+        <p>Este método parte de los hechos conocidos y aplica reglas sucesivamente para llegar a nuevas conclusiones o resultados. Es útil cuando tenemos datos iniciales y queremos ver qué podemos deducir de ellos.</p>
+
+        <h3>Encadenamiento hacia atrás (backward chaining)</h3>
+        <p>Este método funciona en dirección opuesta; parte de un resultado o conclusión que queremos verificar y busca retrospectivamente los hechos y reglas que podrían haberlo originado. Es útil para verificar hipótesis.</p>
+
+        <h3>Búsqueda heurística</h3>
+        <p>Realiza inferencias mediante estructuras de tipo árbol de decisión, explorando diferentes caminos posibles y utilizando reglas heurísticas (reglas prácticas basadas en experiencia) para guiar la búsqueda hacia las soluciones más prometedoras.</p>
+
+        <h3>Herencia</h3>
+        <p>En sistemas basados en objetos o marcos, un concepto u objeto "hijo" puede adquirir automáticamente propiedades y características de sus conceptos "padres", evitando duplicación de información.</p>
+
+        <p>Para obtener conclusiones válidas, estos sistemas emplean sistemas de inferencia lógica básicos como el <strong>Modus Ponens</strong> (si A implica B, y A es verdadero, entonces B es verdadero) y el <strong>Modus Tollens</strong> (si A implica B, y B es falso, entonces A es falso).</p>
+    </section>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

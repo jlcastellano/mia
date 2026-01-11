@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistemas Expertos - Modelo Clásico</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>Sistemas Expertos - Modelo Clásico</div>
+    </header>
+    <section class="contenido-didactico">
+        <h1>2. Partes de un sistema experto</h1>
+        <p>Cualquier sistema experto típico está compuesto por varios módulos o componentes que trabajan conjuntamente.</p>
+
+        <figure>
+            <img src="https://pfst.cf2.poecdn.net/base/image/96c4f073bf5c095b3eae727b0b40267ab0a99d102a5c1d5d6b6ea73622999060?w=1536&h=1024" alt="Arquitectura de componentes de un sistema experto">
+            <figcaption>La arquitectura de componentes es un concepto técnico abstracto fundamental. Un diagrama visual ayuda a entender cómo se relacionan e interactúan los diferentes módulos entre sí, algo difícil de visualizar solo con texto</figcaption>
+        </figure>
+
+        <p>Los componentes habituales son los siguientes:</p>
+
+        <h2>Base de conocimientos</h2>
+        <p>Este componente contiene todo el conocimiento y la experiencia acumulada de los expertos en un campo particular, pero estructurada y codificada de manera que la computadora pueda utilizarla. Esta información puede organizarse mediante diferentes estructuras: listas ordenadas, descripción detallada de objetos y sus propiedades, cálculo de predicados lógicos, redes semánticas que relacionan conceptos, o reglas de producción del tipo "si-entonces".</p>
+
+        <h2>Base de hechos o datos</h2>
+        <p>Funciona como la memoria de trabajo temporal del sistema. Aquí se almacenan las variables de entrada que proporciona el usuario, las variables intermedias que se van calculando durante el proceso de razonamiento, y las variables de salida que representan las conclusiones. También registra el histórico de estados por los que ha pasado el sistema y sincroniza la información del problema actual con la base de conocimientos para poder deducir nuevos hechos a partir de los que ya se conocen.</p>
+
+        <h2>Motor o mecanismo de inferencia</h2>
+        <p>Este es el componente lógico central que actúa como el "cerebro" del sistema. Aplica las reglas almacenadas en la base de conocimientos a las consultas o problemas planteados para extraer conclusiones válidas. Determina el orden en que deben ejecutarse las acciones, selecciona qué reglas específicas aplicar en cada momento, y gestiona toda la interacción con el usuario durante el proceso de resolución del problema.</p>
+
+        <h2>Interfaz sistema-usuario</h2>
+        <p>Es el componente que sirve como vía de comunicación entre el sistema y las personas que lo utilizan. Debe diseñarse para ser natural, sencilla y clara, facilitando que usuarios no técnicos puedan interactuar con el sistema. Habitualmente incluye un módulo de comunicaciones que permite al sistema interactuar con otros sistemas informáticos, y un módulo de explicación que ayuda a verificar la coherencia del proceso de razonamiento y muestra al usuario de manera comprensible cómo se llegó a resolver el problema o a obtener la conclusión.</p>
+
+        <h2>Módulo de adquisición de conocimiento</h2>
+        <p>Este módulo facilita la tarea de estructurar y actualizar las bases de datos sin que sea necesario tener un perfil técnico muy avanzado o conocimientos de programación. Permite que los expertos del dominio puedan añadir o modificar conocimiento de manera relativamente sencilla, aunque también permite el acceso directo por código para usuarios más técnicos que necesiten hacer modificaciones complejas.</p>
+    </section>
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
