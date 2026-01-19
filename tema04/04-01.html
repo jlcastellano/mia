@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprendizaje Automático</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+</head>
+
+<body>
+    <header>
+        <div>Modelos de Aprendizaje Automático</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>1.- Introducción al Aprendizaje Automático</h1>
+
+        <p>
+            En esta unidad vamos a explorar el mundo de la <strong>Inteligencia Artificial (IA)</strong> y
+            específicamente el <strong>Aprendizaje Automático</strong> (también conocido como <em>Machine
+                Learning</em>). Aprenderemos sobre sus tres tipos principales: Supervisado, No supervisado y Por
+            refuerzo, además de comprender los fundamentos matemáticos y estadísticos que hacen posible esta tecnología
+            revolucionaria.
+        </p>
+
+        <p>
+            El concepto de Machine Learning no es algo reciente; sus raíces se remontan a los inicios de la inteligencia
+            artificial en el siglo XX, cuando pioneros como Alan Turing se preguntaban si las máquinas podrían pensar.
+            Sin embargo, vivimos en la era del <strong>Big Data</strong>, una época marcada por la explosión masiva de
+            información digital y el abaratamiento tanto del almacenamiento como del procesamiento de datos. Se estima
+            que cada día se generan aproximadamente 2.5 quintillones de bytes de datos a nivel mundial, y este volumen
+            se duplica aproximadamente cada dos años. Este contexto ha impulsado un renacimiento espectacular del
+            aprendizaje automático. Hoy en día, estos algoritmos permiten que las computadoras aprendan conceptos de
+            forma autónoma y se "autoprogramen" mediante reglas abstractas que ellas mismas construyen, sin necesidad de
+            que un programador las escriba manualmente.
+        </p>
+
+        <p>
+            La diferencia fundamental entre la programación tradicional y el aprendizaje automático radica en el flujo
+            de información. En la programación clásica, un desarrollador escribe reglas explícitas que transforman datos
+            de entrada en resultados. En el aprendizaje automático, el sistema recibe tanto los datos de entrada como
+            los resultados esperados, y deduce las reglas por sí mismo. Este cambio de paradigma ha permitido resolver
+            problemas que antes parecían imposibles de abordar computacionalmente, como el reconocimiento de imágenes a
+            nivel humano, la traducción automática entre idiomas o la generación de texto coherente.
+        </p>
+
+        <h2>Evolución del Aprendizaje Automático</h2>
+
+        <p>
+            Esta disciplina ha experimentado una transformación fascinante a través de diferentes etapas, marcadas por
+            avances tecnológicos y cambios en la comprensión teórica de cómo las máquinas pueden aprender:
+        </p>
+
+        <dl>
+            <dt>Mediados del siglo XX (1943-1960):</dt>
+            <dd>Los científicos soñaban con construir máquinas complejas capaces de imitar la inteligencia humana.
+                Warren McCulloch y Walter Pitts propusieron el primer modelo matemático de una neurona artificial en
+                1943. En 1950, Alan Turing publicó su influyente artículo "Computing Machinery and Intelligence", donde
+                introdujo el famoso Test de Turing. Frank Rosenblatt desarrolló el Perceptrón en 1958, el primer
+                algoritmo de aprendizaje para redes neuronales, generando un entusiasmo inicial que prometía máquinas
+                pensantes en pocos años.</dd>
+
+            <dt>El primer invierno de la IA (1960-1980):</dt>
+            <dd>Las limitaciones computacionales y teóricas frenaron el progreso. Marvin Minsky y Seymour Papert
+                demostraron en 1969 que el Perceptrón simple no podía resolver problemas no lineales básicos como la
+                función XOR, lo que provocó una drástica reducción en la financiación y el interés por las redes
+                neuronales.</dd>
+
+            <dt>Finales del siglo XX (1980-2000):</dt>
+            <dd>El objetivo evolucionó hacia desarrollar programas informáticos que pudieran resolver problemas
+                complejos de manera similar a como lo haría una persona. Se popularizaron los sistemas expertos y se
+                redescubrió el algoritmo de retropropagación (backpropagation) para entrenar redes neuronales multicapa.
+                Geoffrey Hinton, Yann LeCun y Yoshua Bengio sentaron las bases de lo que décadas después se conocería
+                como Deep Learning. Las Máquinas de Vectores de Soporte (SVM) y los árboles de decisión ganaron
+                popularidad como alternativas más interpretables.</dd>
+
+            <dt>Inicio del siglo XXI (2000-2012):</dt>
+            <dd>Se lograron crear programas con resultados comparables a los humanos, aprovechando la creciente
+                capacidad de cálculo de las computadoras. Netflix lanzó su famoso concurso de predicción de ratings en
+                2006, demostrando el poder de los métodos ensemble. Los algoritmos de Random Forest y Gradient Boosting
+                se convirtieron en herramientas estándar para competiciones de ciencia de datos.</dd>
+
+            <dt>La revolución del Deep Learning (2012-2020):</dt>
+            <dd>En 2012, AlexNet ganó la competición ImageNet con una ventaja abrumadora, demostrando que las redes
+                neuronales profundas podían superar ampliamente los métodos tradicionales en reconocimiento de imágenes.
+                Este momento marcó el inicio de una nueva era. Las redes neuronales convolucionales (CNN) revolucionaron
+                la visión por computador, mientras que las redes recurrentes (RNN) y posteriormente los Transformers
+                transformaron el procesamiento del lenguaje natural.</dd>
+
+            <dt>Actualidad (2020-2025):</dt>
+            <dd>El Machine Learning se ha potenciado enormemente gracias al Big Data, la digitalización masiva y la
+                reducción de costos en el procesamiento de información. La arquitectura Transformer, introducida en el
+                artículo "Attention Is All You Need" (2017), ha dado lugar a modelos de lenguaje de gran escala (LLMs)
+                como GPT-4, Claude, Gemini y Llama, capaces de mantener conversaciones coherentes, escribir código y
+                razonar sobre problemas complejos. Además, la computación en la nube y los avances en hardware
+                especializado (como GPUs de NVIDIA, TPUs de Google y chips neuromórficos) han democratizado el acceso a
+                estas tecnologías. Los modelos de difusión han revolucionado la generación de imágenes, y el aprendizaje
+                por refuerzo con retroalimentación humana (RLHF) ha permitido alinear mejor los modelos con las
+                intenciones humanas.</dd>
+        </dl>
+
+        <p>
+            En sus inicios, el aprendizaje automático se centraba principalmente en reconocer patrones dentro de los
+            datos. Hoy en día, su enfoque es mucho más práctico: resolver problemas reales del mundo utilizando
+            razonamiento probabilístico, estadística avanzada y técnicas sofisticadas de análisis de datos. Las
+            aplicaciones van desde la medicina personalizada y el descubrimiento de fármacos hasta la conducción
+            autónoma, la detección de cambio climático y la optimización de cadenas de suministro globales.
+        </p>
+
+        <h2>Definición y Esquema</h2>
+
+        <p>
+            El Aprendizaje Automático es esencialmente un programa informático que tiene la capacidad de analizar datos
+            y aprender de ellos. A partir de esta información, puede generar reglas automáticas, acelerar procesos de
+            toma de decisiones o segmentar grupos de información. Según el esquema propuesto por <strong>Tom
+                Mitchell</strong>, un pionero en este campo y autor del influyente libro "Machine Learning" (1997), el
+            aprendizaje automático se fundamenta en tres elementos clave: la <strong>Tarea (T)</strong> que queremos
+            realizar, la <strong>Experiencia (E)</strong> o datos de los que aprendemos, y el <strong>Rendimiento
+                (P)</strong> que mide qué tan bien lo estamos haciendo.
+        </p>
+
+        <figure>
+            <img src="https://pfst.cf2.poecdn.net/base/image/d6077f8e38642a4e5b8ad0096873961615cdf423f2a11a43541e929753921d0f?w=1536&h=1024"
+                alt="Imagen didáctica 1">
+            <figcaption>Esquema de Tom Mitchell</figcaption>
+        </figure>
+
+        <p>
+            Podemos definirlo así: El Aprendizaje Automático es un proceso mediante el cual una máquina adquiere
+            conocimiento de forma automática utilizando ejemplos (experiencia) de entrenamiento, sin ser programada
+            explícitamente para cada situación específica.
+        </p>
+
+        <blockquote>
+            <p><strong>Definición formal de Tom Mitchell (1997):</strong> "Se dice que un programa de computadora
+                aprende de la experiencia E con respecto a alguna clase de tareas T y medida de rendimiento P, si su
+                desempeño en las tareas en T, medido por P, mejora con la experiencia E."</p>
+        </blockquote>
+
+        <p>
+            Esta definición, aunque aparentemente simple, captura la esencia del aprendizaje automático. Por ejemplo,
+            consideremos un sistema de recomendación de películas: la Tarea (T) sería predecir qué películas le gustarán
+            a un usuario; la Experiencia (E) serían las valoraciones históricas de usuarios sobre películas; y el
+            Rendimiento (P) podría medirse como el porcentaje de recomendaciones que el usuario efectivamente ve y
+            valora positivamente.
+        </p>
+
+        <h3>Componentes fundamentales de un sistema de ML</h3>
+
+        <p>
+            Todo sistema de aprendizaje automático consta de varios componentes esenciales que trabajan en conjunto. Los
+            <strong>datos</strong> constituyen la materia prima: pueden ser estructurados (tablas, bases de datos),
+            semiestructurados (JSON, XML) o no estructurados (imágenes, texto, audio). Las <strong>características o
+                features</strong> son las propiedades medibles de los datos que el modelo utiliza para hacer
+            predicciones; la ingeniería de características (feature engineering) es el arte de crear y seleccionar las
+            características más informativas. El <strong>modelo</strong> es la representación matemática que captura los
+            patrones en los datos, desde simples regresiones lineales hasta complejas redes neuronales con miles de
+            millones de parámetros. El <strong>algoritmo de aprendizaje</strong> es el procedimiento que ajusta los
+            parámetros del modelo para minimizar el error en las predicciones. Finalmente, la <strong>función de
+                pérdida</strong> cuantifica qué tan lejos están las predicciones del modelo de los valores reales.
+        </p>
+
+        <h3>El pipeline de Machine Learning</h3>
+
+        <p>
+            El desarrollo de un proyecto de aprendizaje automático sigue típicamente un proceso iterativo conocido como
+            pipeline de ML. Comienza con la <strong>definición del problema</strong>, donde se establece claramente qué
+            queremos predecir y por qué. Sigue la <strong>recolección de datos</strong>, que puede implicar bases de
+            datos existentes, APIs, web scraping o incluso la creación de datos sintéticos. La fase de
+            <strong>exploración y limpieza</strong> incluye análisis estadístico, visualización, manejo de valores
+            faltantes y detección de anomalías. El <strong>preprocesamiento</strong> transforma los datos al formato
+            adecuado: normalización, codificación de variables categóricas, reducción de dimensionalidad. La
+            <strong>división del dataset</strong> separa los datos en conjuntos de entrenamiento, validación y prueba
+            para evaluar el modelo de forma imparcial. El <strong>entrenamiento</strong> ajusta los parámetros del
+            modelo usando el conjunto de entrenamiento. La <strong>evaluación</strong> mide el rendimiento en datos no
+            vistos. El <strong>ajuste de hiperparámetros</strong> optimiza las configuraciones del modelo. Finalmente,
+            el <strong>despliegue</strong> pone el modelo en producción, y el <strong>monitoreo</strong> asegura que
+            siga funcionando correctamente ante cambios en los datos.
+        </p>
+
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprendizaje Automático</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+</head>
+
+<body>
+    <header>
+        <div>Modelos de Aprendizaje Automático</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>4.- Aprendizaje Automático Por Refuerzo</h2>
+
+            <p>
+                En este modelo, el objetivo es que un <strong>agente</strong> (un programa) aprenda cómo actuar en
+                diferentes situaciones para <strong>maximizar una recompensa acumulada</strong> a lo largo del tiempo.
+                Funciona mediante un sistema de premios y castigos, similar a cómo entrenarías a una mascota: si hace
+                algo bien, recibe una recompensa; si lo hace mal, recibe una penalización. Lo interesante es que no
+                necesitas especificar exactamente paso a paso cómo realizar la tarea, sino que el agente aprende por
+                experiencia propia, explorando el espacio de acciones posibles y descubriendo qué estrategias funcionan
+                mejor.
+            </p>
+
+            <p>
+                A diferencia del aprendizaje supervisado, donde tenemos pares entrada-salida correctos, en el
+                aprendizaje por refuerzo el agente debe descubrir qué acciones producen las mayores recompensas mediante
+                prueba y error. A diferencia del aprendizaje no supervisado, aquí existe una señal de retroalimentación
+                (la recompensa), aunque esta puede ser escasa y retrasada en el tiempo.
+            </p>
+
+            <figure>
+                <img src="https://pfst.cf2.poecdn.net/base/image/3d5fad7467a9c2f1ab5e9e77fa3660eb49c15a20a3aee8a48ece7819938c90ec?w=1536&h=1024"
+                    alt="Imagen didáctica 3">
+                <figcaption>Ciclo de aprendizaje por refuerzo.</figcaption>
+            </figure>
+
+            <h3>Componentes del aprendizaje por refuerzo</h3>
+
+            <p>
+                El marco formal del aprendizaje por refuerzo se basa en los <strong>Procesos de Decisión de Markov
+                    (MDP)</strong> y consta de varios elementos esenciales. El <strong>agente</strong> es el aprendiz
+                que toma decisiones. El <strong>entorno</strong> es todo aquello con lo que el agente interactúa. El
+                <strong>estado</strong> representa la situación actual del entorno. Las <strong>acciones</strong> son
+                las opciones disponibles para el agente en cada estado. La <strong>recompensa</strong> es la señal
+                numérica que indica qué tan buena fue una acción. La <strong>política</strong> es la estrategia que
+                sigue el agente para elegir acciones dado un estado. El <strong>valor</strong> estima la recompensa
+                acumulada esperada a largo plazo desde un estado. La <strong>función Q</strong> estima el valor de tomar
+                una acción específica en un estado específico.
+            </p>
+
+            <p>
+                Es fundamental definir claramente las reglas del entorno y cómo interactúan los diferentes elementos. Un
+                desafío central es el <strong>dilema exploración-explotación</strong>: el agente debe balancear entre
+                explorar nuevas acciones (que podrían dar mejores recompensas) y explotar el conocimiento actual
+                (eligiendo acciones que ya sabe que funcionan bien).
+            </p>
+
+            <h3>Algoritmos y aplicaciones</h3>
+
+            <p>
+                Los algoritmos de aprendizaje por refuerzo se dividen en varias familias. Los métodos <strong>basados en
+                    valor</strong> como Q-Learning y DQN (Deep Q-Network) aprenden una función que estima el valor de
+                cada par estado-acción. Los métodos <strong>basados en política</strong> como REINFORCE y PPO (Proximal
+                Policy Optimization) aprenden directamente la política óptima. Los métodos
+                <strong>actor-crítico</strong> como A3C y SAC combinan ambos enfoques, usando un "actor" que elige
+                acciones y un "crítico" que evalúa qué tan buenas son.
+            </p>
+
+            <p>
+                Ejemplos notables incluyen sistemas que han aprendido a jugar videojuegos clásicos (como Arkanoid o
+                juegos de Atari) alcanzando niveles superhumanos. DeepMind's DQN fue el primer sistema en dominar juegos
+                de Atari directamente desde los píxeles de la pantalla. AlphaGo derrotó al campeón mundial de Go en
+                2016, un hito considerado décadas antes de lo previsto. AlphaFold revolucionó la predicción de
+                estructura de proteínas. Personajes digitales aprenden a caminar, correr o saltar obstáculos por sí
+                solos mediante prueba y error repetido.
+            </p>
+
+            <p>
+                En 2025, este enfoque se utiliza ampliamente en robótica (robots que aprenden a manipular objetos,
+                caminar en terrenos irregulares o colaborar con humanos), vehículos autónomos (aprendiendo estrategias
+                de conducción segura), sistemas de recomendación personalizados (optimizando el engagement a largo
+                plazo), gestión de centros de datos (optimizando el consumo energético), trading algorítmico, control de
+                procesos industriales, y en el entrenamiento de modelos de lenguaje mediante RLHF (Reinforcement
+                Learning from Human Feedback), técnica fundamental para alinear los LLMs con las preferencias humanas.
+            </p>
+
+            <blockquote>
+                <p><strong>RLHF (Reinforcement Learning from Human Feedback):</strong> Esta técnica, crucial en el
+                    desarrollo de asistentes de IA modernos, utiliza el aprendizaje por refuerzo para optimizar un
+                    modelo de lenguaje según las preferencias expresadas por evaluadores humanos. Un modelo de
+                    recompensa aprende a predecir qué respuestas prefieren los humanos, y luego se usa para entrenar el
+                    modelo principal mediante algoritmos como PPO.</p>
+            </blockquote>
+
+            <h2>Diferencia: Minería de Datos vs. Machine Learning</h2>
+
+            <p>
+                Aunque estos dos términos a menudo se usan como sinónimos, en realidad tienen enfoques y objetivos
+                diferentes, aunque complementarios y frecuentemente superpuestos en la práctica:
+            </p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Aspecto</th>
+                        <th>Minería de Datos</th>
+                        <th>Machine Learning</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Objetivo principal</strong></td>
+                        <td>Descubrir patrones y conocimiento previamente desconocido en grandes volúmenes de datos.
+                        </td>
+                        <td>Desarrollar algoritmos que aprendan de datos para hacer predicciones o tomar decisiones.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Enfoque</strong></td>
+                        <td>Exploratorio y descriptivo. Busca responder "¿qué está pasando?"</td>
+                        <td>Predictivo y prescriptivo. Busca responder "¿qué pasará?" o "¿qué debo hacer?"</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Intervención humana</strong></td>
+                        <td>Alta. El analista interpreta y valida los patrones descubiertos.</td>
+                        <td>Variable. Los modelos pueden operar de forma más autónoma una vez entrenados.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Salida típica</strong></td>
+                        <td>Reglas, patrones, asociaciones, visualizaciones, insights de negocio.</td>
+                        <td>Modelos predictivos, clasificadores, sistemas de recomendación.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Origen disciplinar</strong></td>
+                        <td>Bases de datos, estadística, visualización.</td>
+                        <td>Inteligencia artificial, estadística computacional.</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3">En la práctica moderna, ambas disciplinas se entrelazan y complementan
+                            frecuentemente.</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <p>
+                <strong>Minería de datos (Data mining):</strong> Tiene una función principalmente exploratoria. Su
+                objetivo es descubrir patrones, tendencias o relaciones que anteriormente eran desconocidas y que están
+                ocultas en grandes volúmenes de datos. Es como explorar un territorio desconocido buscando tesoros
+                escondidos. El proceso típico incluye la selección de datos, preprocesamiento, transformación,
+                aplicación de algoritmos de minería, y la interpretación y evaluación de resultados. Un ejemplo clásico
+                es descubrir que los clientes que compran cierto producto también tienden a comprar otro producto
+                relacionado.
+            </p>
+
+            <p>
+                <strong>Aprendizaje Automático (Machine learning):</strong> Se enfoca principalmente en la predicción.
+                Utiliza patrones ya conocidos (aprendidos de datos históricos) para realizar inferencias, predicciones o
+                clasificaciones sobre datos nuevos que nunca ha visto antes. Es como usar un mapa aprendido para navegar
+                por nuevos caminos. El énfasis está en la capacidad de generalización: un buen modelo de ML debe
+                funcionar bien no solo en los datos de entrenamiento, sino especialmente en datos nuevos que nunca ha
+                visto.
+            </p>
+
+            <p>
+                Ambas disciplinas se complementan: la minería de datos puede ayudarnos a descubrir patrones interesantes
+                y a entender mejor nuestros datos, y el machine learning puede usar esos patrones y esa comprensión para
+                construir modelos predictivos útiles. En muchos proyectos reales, se utilizan técnicas de ambas
+                disciplinas de forma integrada.
+            </p>
+
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

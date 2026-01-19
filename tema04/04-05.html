@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprendizaje Automático</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+</head>
+<body>
+    <header>
+        <div>Modelos de Aprendizaje Automático</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>5.- El Ecosistema Actual del Machine Learning</h1>
+
+        <h3>Herramientas y frameworks</h3>
+
+        <p>
+            El ecosistema de herramientas para machine learning ha madurado enormemente. <strong>Python</strong> se ha consolidado como el lenguaje dominante, con librerías fundamentales como NumPy (computación numérica), Pandas (manipulación de datos), Matplotlib y Seaborn (visualización), y Scikit-learn (algoritmos clásicos de ML). Para deep learning, <strong>TensorFlow</strong> (de Google) y <strong>PyTorch</strong> (de Meta) son los frameworks más utilizados, con PyTorch ganando popularidad en investigación por su flexibilidad y TensorFlow siendo preferido en producción por su ecosistema maduro. <strong>Hugging Face</strong> se ha convertido en el hub central para modelos de procesamiento de lenguaje natural, ofreciendo miles de modelos preentrenados. <strong>MLflow</strong>, <strong>Weights & Biases</strong> y <strong>Neptune</strong> facilitan el seguimiento de experimentos y la gestión del ciclo de vida de los modelos. Plataformas cloud como AWS SageMaker, Google Vertex AI y Azure ML ofrecen infraestructura gestionada para entrenar y desplegar modelos a escala.
+        </p>
+
+        <h3>Consideraciones éticas y responsables</h3>
+
+        <p>
+            A medida que los sistemas de ML se vuelven más ubicuos, las consideraciones éticas son cada vez más importantes. El <strong>sesgo algorítmico</strong> puede perpetuar o amplificar discriminaciones existentes si los datos de entrenamiento reflejan sesgos históricos. La <strong>explicabilidad</strong> es crucial en dominios de alto riesgo como medicina, justicia o finanzas, donde las decisiones deben poder justificarse. La <strong>privacidad</strong> de los datos utilizados para entrenar modelos es una preocupación creciente, especialmente con regulaciones como el GDPR. El <strong>impacto ambiental</strong> del entrenamiento de modelos grandes (que pueden emitir toneladas de CO2) está siendo cada vez más escrutinizado. La <strong>seguridad</strong> de los modelos ante ataques adversarios y la robustez ante distribuciones de datos cambiantes son áreas activas de investigación.
+        </p>
+
+        <details>
+            <summary>¿Qué es la IA Explicable (XAI)?</summary>
+            <p>La IA Explicable o Explainable AI (XAI) es un conjunto de técnicas y métodos que buscan hacer que las decisiones de los modelos de machine learning sean comprensibles para los humanos. Técnicas como LIME (Local Interpretable Model-agnostic Explanations), SHAP (SHapley Additive exPlanations), y mapas de atención en redes neuronales permiten entender por qué un modelo tomó una decisión particular, lo cual es esencial para construir confianza, detectar sesgos, cumplir con regulaciones y mejorar los modelos.</p>
+        </details>
+
+        <details>
+            <summary>¿Cuál es el futuro del Machine Learning?</summary>
+            <p>El campo continúa evolucionando rápidamente. Las tendencias actuales incluyen: modelos fundacionales multimodales que pueden procesar texto, imágenes, audio y video simultáneamente; aprendizaje con pocos ejemplos (few-shot learning) y zero-shot learning que reducen la necesidad de grandes datasets etiquetados; AutoML y Neural Architecture Search que automatizan el diseño de modelos; Edge ML que lleva la inferencia a dispositivos con recursos limitados; computación neuromórfica que imita más fielmente el cerebro; y la integración cada vez mayor de razonamiento simbólico con aprendizaje profundo para lograr sistemas más robustos y generalizables.</p>
+        </details>
+
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

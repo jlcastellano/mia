@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprendizaje Automático</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+</head>
+
+<body>
+    <header>
+        <div>Modelos de Aprendizaje Automático</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>2.- Aprendizaje Automático Supervisado</h1>
+
+        <p>
+            La característica que define este tipo de aprendizaje es que trabaja con datos que ya han sido
+            <strong>etiquetados o clasificados previamente</strong> por humanos. Imagina que le estás enseñando a un
+            niño a distinguir frutas mostrándole fotos y diciéndole "esto es una manzana", "esto es una naranja". De
+            manera similar, el programa recibe "pistas" a través de <strong>instancias</strong>, que son ejemplos
+            compuestos por una serie de características o atributos y un campo objetivo (la respuesta correcta). El
+            objetivo final es que el programa extraiga un conjunto de reglas para poder predecir ese campo objetivo
+            cuando se encuentre con nuevos casos que nunca ha visto.
+        </p>
+
+        <p>
+            El proceso de aprendizaje supervisado implica encontrar una función <code>f(x)</code> que mapee las entradas
+            <code>x</code> a las salidas <code>y</code> de manera que minimice alguna medida de error. Matemáticamente,
+            buscamos minimizar una función de pérdida <code>L(y, f(x))</code> sobre todos los ejemplos de entrenamiento.
+            La elección de esta función de pérdida depende del tipo de problema: para regresión típicamente usamos el
+            error cuadrático medio (MSE), mientras que para clasificación empleamos la entropía cruzada o log-loss.
+        </p>
+
+        <p>
+            Este tipo de aprendizaje se divide en dos categorías principales, según qué tipo de predicción queramos
+            hacer:
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Objetivo</th>
+                    <th>Ejemplo de aplicación</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Regresión</strong></td>
+                    <td>Predecir un valor numérico continuo específico para una nueva instancia.</td>
+                    <td>Estimar la demanda futura de productos, calcular el volumen de ventas esperado, predecir el
+                        precio de una vivienda, pronosticar temperaturas, estimar el tiempo de vida útil de equipos
+                        industriales o predecir el retorno de una inversión en el mercado.</td>
+                </tr>
+                <tr>
+                    <td><strong>Clasificación</strong></td>
+                    <td>Predecir a qué categoría o grupo discreto pertenece una instancia.</td>
+                    <td>Realizar diagnósticos médicos automáticos (benigno/maligno), detectar fallos en maquinaria
+                        industrial, reconocer dígitos escritos a mano, clasificar sentimientos en redes sociales,
+                        identificar especies de animales en fotografías o predecir si un cliente abandonará un servicio
+                        (churn prediction).</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3">La elección entre regresión y clasificación depende de la naturaleza de la variable
+                        objetivo.</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <h3>Algoritmos principales de aprendizaje supervisado</h3>
+
+        <p>
+            Existe una amplia variedad de algoritmos para el aprendizaje supervisado, cada uno con sus fortalezas y
+            casos de uso ideales. La <strong>Regresión Lineal</strong> es el algoritmo más simple para problemas de
+            regresión, asumiendo una relación lineal entre las características y la variable objetivo. La
+            <strong>Regresión Logística</strong>, a pesar de su nombre, se utiliza para clasificación binaria, modelando
+            la probabilidad de pertenencia a una clase. Los <strong>Árboles de Decisión</strong> dividen el espacio de
+            características mediante reglas if-then anidadas, siendo altamente interpretables. <strong>Random
+                Forest</strong> combina múltiples árboles de decisión mediante bagging para reducir el sobreajuste y
+            mejorar la generalización. <strong>Gradient Boosting</strong> (implementado en librerías como XGBoost,
+            LightGBM y CatBoost) construye árboles secuencialmente, donde cada nuevo árbol corrige los errores de los
+            anteriores, siendo actualmente uno de los métodos más exitosos en competiciones de datos tabulares. Las
+            <strong>Máquinas de Vectores de Soporte (SVM)</strong> buscan el hiperplano que mejor separa las clases con
+            el máximo margen. Los <strong>K-Vecinos más Cercanos (KNN)</strong> clasifican una instancia según la clase
+            mayoritaria de sus k vecinos más próximos. Finalmente, las <strong>Redes Neuronales</strong> pueden aprender
+            representaciones jerárquicas complejas de los datos, siendo especialmente poderosas para imágenes, texto y
+            audio.
+        </p>
+
+        <h3>El dilema sesgo-varianza</h3>
+
+        <p>
+            Uno de los conceptos más importantes en aprendizaje supervisado es el <strong>trade-off entre sesgo y
+                varianza</strong>. El sesgo (bias) mide cuánto se alejan en promedio las predicciones del modelo de los
+            valores reales; un modelo con alto sesgo es demasiado simple y no captura los patrones subyacentes
+            (subajuste o underfitting). La varianza mide cuánto varían las predicciones del modelo ante pequeños cambios
+            en los datos de entrenamiento; un modelo con alta varianza es demasiado complejo y memoriza el ruido de los
+            datos de entrenamiento (sobreajuste u overfitting). El objetivo es encontrar el punto óptimo donde ambos son
+            suficientemente bajos, logrando un modelo que generalice bien a datos nuevos.
+        </p>
+
+        <blockquote>
+            <p><strong>Técnicas para combatir el sobreajuste:</strong> Regularización (L1/Lasso, L2/Ridge, Elastic Net),
+                validación cruzada (cross-validation), early stopping en redes neuronales, dropout, data augmentation, y
+                ensemble methods como bagging y boosting.</p>
+        </blockquote>
+
+        <p>
+            Un dato importante: en el desarrollo de estos modelos, aproximadamente el <strong>80% del esfuerzo y
+                tiempo</strong> se dedica a recoger, limpiar y preparar los datos de partida. Solo el 20% restante
+            corresponde al tiempo de cómputo o entrenamiento del modelo. Esta realidad ha dado origen al dicho popular
+            en la comunidad de ciencia de datos: "garbage in, garbage out" (basura entra, basura sale), enfatizando que
+            la calidad de los datos es fundamental para el éxito de cualquier proyecto de ML.
+        </p>
+
+        <p>
+            Un ejemplo cotidiano y muy extendido de este aprendizaje es la detección de spam en correos electrónicos. La
+            inteligencia artificial compara cada nuevo mensaje que llega con patrones aprendidos de correos que
+            previamente fueron etiquetados por humanos como "spam" o "no spam". El modelo aprende a identificar
+            características sospechosas como ciertas palabras clave ("gratis", "ganador", "urgente"), patrones en las
+            direcciones de remitente, estructura del mensaje, presencia de enlaces sospechosos y muchas otras señales
+            que, combinadas, permiten clasificar con alta precisión los correos no deseados.
+        </p>
+
+        <h3>Métricas de evaluación</h3>
+
+        <p>
+            Evaluar correctamente un modelo es tan importante como entrenarlo. Para problemas de
+            <strong>regresión</strong>, las métricas comunes incluyen el Error Cuadrático Medio (MSE), la Raíz del Error
+            Cuadrático Medio (RMSE), el Error Absoluto Medio (MAE) y el coeficiente de determinación R². Para problemas
+            de <strong>clasificación</strong>, utilizamos la exactitud (accuracy), precisión (precision), recall
+            (sensibilidad), F1-score (media armónica de precisión y recall), la curva ROC y el área bajo la curva
+            (AUC-ROC), y la matriz de confusión que detalla verdaderos positivos, verdaderos negativos, falsos positivos
+            y falsos negativos. La elección de la métrica correcta depende del contexto del problema: en diagnóstico
+            médico, por ejemplo, es crítico minimizar los falsos negativos (no detectar una enfermedad cuando existe),
+            mientras que en detección de spam podríamos priorizar minimizar los falsos positivos (clasificar un correo
+            legítimo como spam).
+        </p>
+
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

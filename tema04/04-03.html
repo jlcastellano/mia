@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprendizaje Automático</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+</head>
+<body>
+    <header>
+        <div>Modelos de Aprendizaje Automático</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>3.- Aprendizaje Automático No Supervisado</h1>
+
+        <p>
+            A diferencia del aprendizaje supervisado, aquí <strong>no necesitamos etiquetar previamente los datos</strong>. Es como si le dieras a alguien una caja llena de objetos diversos y le pidieras que los organizara según criterios que esa persona descubra por sí misma. El objetivo es que la inteligencia artificial encuentre por su cuenta relaciones de similitud, diferencia o asociación dentro del conjunto de datos, revelando estructuras ocultas o patrones que podrían pasar completamente desapercibidos para los seres humanos.
+        </p>
+
+        <p>
+            Este enfoque es particularmente valioso cuando no tenemos etiquetas disponibles (lo cual es muy común en la práctica, ya que etiquetar datos manualmente es costoso y consume tiempo), cuando queremos explorar y entender la estructura inherente de los datos, o cuando buscamos reducir la dimensionalidad de conjuntos de datos complejos para visualización o preprocesamiento.
+        </p>
+
+        <figure>
+            <img src="https://pfst.cf2.poecdn.net/base/image/9783bdff713f2a97c4f5a335029c2335d1538b44325e64b91a4b776ff14156de?w=1536&h=1024" alt="Imagen didáctica 2">
+            <figcaption>Aprendizaje supervisado VS no supervisado.</figcaption>
+        </figure>
+
+        <p>
+            Existen tres tipos principales de problemas que se abordan con este enfoque:
+        </p>
+
+        <dl>
+            <dt>Clusterización o Agrupación:</dt>
+            <dd>Consiste en generar grupos (llamados <em>clusters</em>) reuniendo instancias que sean similares entre sí según alguna medida de distancia o similitud. Por ejemplo, podemos agrupar productos de un supermercado según patrones de compra, segmentar clientes según sus gustos, comportamientos y preferencias sin haberles asignado categorías previamente, identificar comunidades en redes sociales, o agrupar documentos por temática. Los algoritmos más utilizados incluyen K-Means (que particiona los datos en k grupos minimizando la varianza intra-cluster), DBSCAN (que encuentra clusters de forma arbitraria basándose en densidad y puede identificar outliers), clustering jerárquico (que construye un árbol de clusters que puede visualizarse como un dendrograma), y Gaussian Mixture Models (que modela los datos como una mezcla de distribuciones gaussianas).</dd>
+
+            <dt>Detección de anomalías:</dt>
+            <dd>Este método identifica y predice datos inusuales, raros o poco comunes que se diferencian significativamente del resto. Una anomalía puede indicar un error en los datos, pero también puede revelar información valiosa: un comportamiento fraudulento, un fallo en un sistema, o un descubrimiento científico. Es especialmente útil en la detección de fraudes bancarios (transacciones sospechosas), ciberseguridad (intrusiones en redes), monitoreo de salud (arritmias cardíacas), control de calidad industrial, o como paso previo para limpiar conjuntos de datos eliminando valores atípicos antes de aplicar otros modelos de aprendizaje. Técnicas populares incluyen Isolation Forest, One-Class SVM, autoencoders, y métodos basados en distancias o densidad.</dd>
+
+            <dt>Asociaciones:</dt>
+            <dd>Busca descubrir relaciones interesantes entre los diferentes valores que pueden tomar los campos de una instancia para deducir reglas útiles. Una regla de asociación tiene la forma "Si A, entonces B" con cierta confianza y soporte. Un ejemplo clásico es el análisis de la cesta de la compra: ¿qué productos tienden a comprarse juntos? Si alguien compra pañales, ¿qué probabilidad hay de que también compre toallitas húmedas? El famoso caso de "pañales y cerveza" (donde se descubrió que los padres jóvenes compraban ambos productos los viernes) ilustra cómo estas técnicas pueden revelar patrones no intuitivos. El algoritmo Apriori es el más conocido para este tipo de análisis, aunque también se utilizan FP-Growth y variantes más modernas.</dd>
+        </dl>
+
+        <h3>Reducción de dimensionalidad</h3>
+
+        <p>
+            Aunque no siempre se menciona como categoría principal, la <strong>reducción de dimensionalidad</strong> es otra aplicación fundamental del aprendizaje no supervisado. Cuando trabajamos con datos de alta dimensionalidad (muchas características), enfrentamos la "maldición de la dimensionalidad": los algoritmos se vuelven menos eficientes, la visualización es imposible, y el sobreajuste se hace más probable. Técnicas como el <strong>Análisis de Componentes Principales (PCA)</strong> proyectan los datos a un espacio de menor dimensión preservando la máxima varianza posible. <strong>t-SNE</strong> y <strong>UMAP</strong> son técnicas no lineales especialmente útiles para visualizar datos de alta dimensión en 2D o 3D, revelando estructuras de clusters que métodos lineales no pueden capturar. Los <strong>autoencoders</strong>, un tipo de red neuronal, aprenden representaciones comprimidas de los datos que pueden usarse para reducción de dimensionalidad, detección de anomalías o generación de datos.
+        </p>
+
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
