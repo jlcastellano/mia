@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redes Generativas Adversarias (GANs)</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>Redes Generativas Adversarias (GANs)</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>Introducción</h1>
+        <p>Las Redes Generativas Adversarias representan uno de los avances más revolucionarios en inteligencia artificial generativa. Desde su introducción por Ian Goodfellow en 2014, las GANs han permitido generar rostros humanos indistinguibles de fotografías reales, transformar bocetos en obras de arte, envejecer rostros, cambiar estaciones del año en fotografías, y crear mundos imaginarios. Este módulo te llevará desde la intuición fundamental hasta la implementación práctica.</p>
+    </section>
+
+    <section class="contenido-didactico">
+        <h1>2.1 Arquitectura Fundamental</h1>
+        
+        <h2>2.1.1 El Concepto de Adversarialidad</h2>
+        
+        <h3>Explicación Técnica</h3>
+        <p>Las GANs implementan un paradigma de aprendizaje completamente diferente a las redes neuronales tradicionales. En lugar de optimizar una única función objetivo, establecen un juego de suma cero entre dos redes neuronales con objetivos opuestos.</p>
+        
+        <p>El sistema consta de dos componentes fundamentales. El <strong>Generador G</strong> es una red neuronal que aprende una función de mapeo \( G: \mathcal{Z} \rightarrow \mathcal{X} \), donde \( \mathcal{Z} \) es el espacio latente (típicamente ruido Gaussiano) y \( \mathcal{X} \) es el espacio de datos (por ejemplo, imágenes). El <strong>Discriminador D</strong> es una red neuronal que aprende una función \( D: \mathcal{X} \rightarrow [0, 1] \), donde la salida representa la probabilidad de que una muestra sea real (proveniente del dataset) versus falsa (generada por G).</p>
+        
+        <p>La dinámica adversarial se puede entender mediante teoría de juegos. Cada red busca optimizar su propia función objetivo, pero estas funciones están en conflicto directo:</p>
+        
+        <p>Para el Discriminador, queremos maximizar su capacidad de distinguir:</p>
+        <p>$$\max_D \mathbb{E}_{x \sim p_{data}}[\log D(x)] + \mathbb{E}_{z \sim p_z}[\log(1 - D(G(z)))]$$</p>
+        
+        <p>Para el Generador, queremos maximizar su capacidad de engañar:</p>
+        <p>$$\max_G \mathbb{E}_{z \sim p_z}[\log D(G(z))]$$</p>
+        
+        <p>O equivalentemente, minimizar:</p>
+        <p>$$\min_G \mathbb{E}_{z \sim p_z}[\log(1 - D(G(z)))]$$</p>
+        
+        <blockquote>
+        <p>Imagina que existe un falsificador de dinero (el Generador) y un detective del banco (el Discriminador). El falsificador quiere crear billetes tan perfectos que nadie pueda distinguirlos de los reales. El detective quiere volverse tan bueno que pueda detectar hasta la falsificación más perfecta.</p>
+        
+        <p>Aquí viene lo interesante: ambos aprenden uno del otro. Cada vez que el detective descubre un billete falso porque el papel se siente raro, el falsificador aprende y consigue mejor papel. Cada vez que el falsificador mejora, el detective tiene que buscar detalles más finos para detectarlo.</p>
+        
+        <p>Con el tiempo, ocurre algo mágico: el falsificador se vuelve TAN bueno que sus billetes son prácticamente indistinguibles de los reales. Y el detective se vuelve TAN bueno que puede detectar diferencias que un humano normal jamás notaría. Los dos se empujan mutuamente a ser mejores.</p>
+        
+        <p>El ruido aleatorio que recibe el Generador es como darle al falsificador dados para lanzar antes de empezar cada billete. Dependiendo de qué números salgan, el billete será un poco diferente. Así puede crear millones de billetes únicos, no solo copiar uno una y otra vez.</p>
+        </blockquote>
+        <h2>2.1.2 Formulación Matemática del Juego Minimax</h2>
+        
+        <h3>Explicación Técnica</h3>
+        <p>La formulación completa del objetivo GAN como juego minimax es:</p>
+        <p>$$\min_G \max_D V(D, G) = \mathbb{E}_{x \sim p_{data}(x)}[\log D(x)] + \mathbb{E}_{z \sim p_z(z)}[\log(1 - D(G(z)))]$$</p>
+        
+        <p>Analicemos cada término en detalle.</p>
+        
+        <p>El primer término \( \mathbb{E}_{x \sim p_{data}(x)}[\log D(x)] \) representa el valor esperado del logaritmo de la predicción del discriminador sobre muestras reales. Cuando D clasifica correctamente una muestra real (D(x) ≈ 1), log(D(x)) ≈ 0 (bueno para D). Cuando D clasifica incorrectamente una muestra real (D(x) ≈ 0), log(D(x)) → -∞ (malo para D).</p>
+        
+        <p>El segundo término \( \mathbb{E}_{z \sim p_z(z)}[\log(1 - D(G(z)))] \) representa el valor esperado sobre muestras generadas. Cuando D clasifica correctamente una muestra falsa (D(G(z)) ≈ 0), log(1 - D(G(z))) ≈ 0 (bueno para D, malo para G). Cuando D es engañado (D(G(z)) ≈ 1), log(1 - D(G(z))) → -∞ (malo para D, bueno para G).</p>
+        
+        <p><strong>Equilibrio de Nash:</strong></p>
+        
+        <p>En el equilibrio óptimo del juego, ocurren dos cosas:</p>
+        <ol>
+            <li>El generador produce muestras indistinguibles de las reales: \( p_g = p_{data} \)</li>
+            <li>El discriminador no puede hacer mejor que adivinar al azar: \( D(x) = 0.5 \) para todo x</li>
+        </ol>
+        
+        <p>Se puede demostrar que para un G fijo, el discriminador óptimo es:</p>
+        <p>$$D^*_G(x) = \frac{p_{data}(x)}{p_{data}(x) + p_g(x)}$$</p>
+        
+        <p>Sustituyendo \( D^* \) en el objetivo y simplificando, se obtiene:</p>
+        <p>$$V(G, D^*) = -\log 4 + 2 \cdot D_{JS}(p_{data} \| p_g)$$</p>
+        
+        <p>Donde \( D_{JS} \) es la divergencia de Jensen-Shannon:</p>
+        <p>$$D_{JS}(P \| Q) = \frac{1}{2}D_{KL}(P \| M) + \frac{1}{2}D_{KL}(Q \| M)$$</p>
+        
+        <p>Con \( M = \frac{1}{2}(P + Q) \). La divergencia JS está acotada: \( 0 \leq D_{JS} \leq \log 2 \), y es simétrica.</p>
+        
+        <p><strong>Implicación crucial:</strong> Entrenar una GAN equivale a minimizar la divergencia Jensen-Shannon entre la distribución de datos reales y la distribución aprendida por el generador.</p>
+        
+        <blockquote>
+        <p>El juego minimax es como un balancín en el parque, pero con un giro especial: hay dos niños sentados, y cada uno quiere estar más alto que el otro.</p>
+        
+        <p>Un lado del balancín es el Generador (que quiere bajar el número V) y el otro lado es el Discriminador (que quiere subir V). Cada uno empuja con todas sus fuerzas. El número V es como la altura del punto medio del balancín.</p>
+        
+        <p>El primer pedazo de la fórmula (con las imágenes reales) es como preguntarle al detective: "¿reconoces el dinero real?" Si dice "¡sí, definitivamente es real!", es bueno para él. Si se confunde con dinero real, es malo.</p>
+        
+        <p>El segundo pedazo (con las imágenes falsas) es como preguntarle: "¿reconoces el dinero falso?" Si dice "¡esto es claramente falso!", es bueno para el detective pero malo para el falsificador. Si dice "hmm, parece real...", es malo para el detective pero ¡genial para el falsificador!</p>
+        
+        <p>El "Equilibrio de Nash" es cuando ambos jugadores son tan buenos que ninguno puede mejorar sin que el otro mejore también. Es como cuando dos equipos de fútbol son exactamente igual de buenos: cada partido termina en empate. En las GANs, este equilibrio perfecto significa que el falsificador hace billetes perfectos y el detective solo puede adivinar al 50/50.</p>
+        
+        <p>La divergencia Jensen-Shannon es como medir qué tan diferentes son dos montones de caramelos. Si los dos montones tienen exactamente los mismos sabores en las mismas cantidades, la divergencia es cero. Si uno tiene solo caramelos de fresa y el otro solo de limón, la divergencia es máxima. El Generador intenta que su montón de "imágenes falsas" sea idéntico al montón de "imágenes reales".</p>
+        </blockquote>
+        <h2>2.1.3 Arquitectura del Generador</h2>
+        
+        <h3>Explicación Técnica</h3>
+        <p>El Generador es típicamente una red que expande dimensionalidad, transformando un vector de ruido compacto en datos de alta dimensión.</p>
+        
+        <p><strong>Entrada (Vector Latente z):</strong></p>
+        
+        <p>El vector z se muestrea de una distribución prior, típicamente:</p>
+        <p>$$z \sim \mathcal{N}(0, I_d)$$</p>
+        
+        <p>Donde d es la dimensionalidad del espacio latente (comúnmente 100-512). Cada dimensión de z puede verse como un "factor de variación" que influye en la salida.</p>
+        
+        <p><strong>Arquitectura Típica para Imágenes:</strong></p>
+        
+        <p>Para generar imágenes, el generador suele seguir esta estructura:</p>
+        
+        <p>La primera etapa es el <strong>Mapeo Inicial</strong> con una capa fully connected que proyecta z a un tensor de forma adecuada:</p>
+        <p>$$h_0 = \text{Reshape}(W_0 z + b_0) \in \mathbb{R}^{C_0 \times H_0 \times W_0}$$</p>
+        
+        <p>Por ejemplo, z de dimensión 100 → tensor de 512 × 4 × 4.</p>
+        
+        <p>La segunda etapa consiste en <strong>Bloques de Upsampling</strong> que incrementan resolución progresivamente:</p>
+        <p>$$h_{l+1} = \text{Activation}(\text{Norm}(\text{ConvTranspose}(h_l)))$$</p>
+        
+        <p>Cada bloque típicamente duplica las dimensiones espaciales y reduce los canales. La secuencia común es: 512×4×4 → 256×8×8 → 128×16×16 → 64×32×32 → 3×64×64.</p>
+        
+        <p><strong>Convolución Transpuesta (Deconvolución):</strong></p>
+        
+        <p>La operación clave para aumentar resolución es la convolución transpuesta:</p>
+        <p>$$y[i] = \sum_k x[k] \cdot w[i - k \cdot s]$$</p>
+        
+        <p>Donde s es el stride. Con stride=2, cada pixel de entrada contribuye a una región 2×2 de la salida.</p>
+        
+        <p><strong>Capa de Salida:</strong></p>
+        
+        <p>La capa final usa una activación que mapea al rango apropiado de los datos:</p>
+        <p>$$\text{output} = \tanh(h_L) \in [-1, 1]^{C \times H \times W}$$</p>
+        
+        <p>Tanh es común para imágenes normalizadas a [-1, 1].</p>
+        
+        <blockquote>
+        <p>El Generador es como una máquina mágica que convierte semillas en árboles. Le das una semillita pequeña (el vector z, que es solo una lista de 100 números aleatorios) y sale un árbol completo (una imagen detallada con millones de pixeles).</p>
+        
+        <p>El vector z es como el ADN de la imagen. Así como tu ADN determina si tienes ojos azules o marrones, pelo lacio o rizado, los números en z determinan si la imagen tendrá una persona sonriendo o seria, con pelo largo o corto, joven o vieja.</p>
+        
+        <p>El proceso funciona en pasos, como hacer crecer la imagen. Primero es una manchita diminuta de 4×4 pixeles, básicamente irreconocible. Luego crece a 8×8, y empiezas a ver formas básicas. Después a 16×16, donde quizás ves que es una cara. Luego 32×32, ahora ves ojos y boca. Finalmente llega a 64×64 o más, con todos los detalles finos como pestañas y texturas de piel.</p>
+        
+        <p>La "convolución transpuesta" es la operación que agranda la imagen. Imagina que tienes una foto pequeña y una lupa mágica que no solo hace zoom, sino que inventa los detalles finos que deberían estar ahí. Eso es lo que hace la convolución transpuesta: agranda y añade detalles.</p>
+        
+        <p>Al final, el tanh es como ajustar el brillo de la imagen para que todos los colores queden en el rango correcto. Sin esto, podrías tener pixeles con valores imposibles, como -500 o +1000.</p>
+        </blockquote>
+        <h2>2.1.4 Arquitectura del Discriminador</h2>
+        
+        <h3>Explicación Técnica</h3>
+        <p>El Discriminador es típicamente una red que contrae dimensionalidad, similar a un clasificador de imágenes tradicional.</p>
+        
+        <p><strong>Arquitectura Típica:</strong></p>
+        
+        <p>La primera etapa consiste en <strong>Bloques Convolucionales</strong> que reducen dimensionalidad y extraen features:</p>
+        <p>$$h_{l+1} = \text{LeakyReLU}(\text{Norm}(\text{Conv}(h_l)))$$</p>
+        
+        <p>Cada bloque reduce las dimensiones espaciales y aumenta los canales. Progresión típica: 3×64×64 → 64×32×32 → 128×16×16 → 256×8×8 → 512×4×4.</p>
+        
+        <p>La segunda etapa es el <strong>Clasificador Final</strong> que aplana el tensor y produce un escalar:</p>
+        <p>$$D(x) = \sigma(W_f \cdot \text{Flatten}(h_L) + b_f)$$</p>
+        
+        <p>Donde σ es sigmoid para obtener una probabilidad.</p>
+        
+        <p><strong>Leaky ReLU en el Discriminador:</strong></p>
+        
+        <p>Se prefiere Leaky ReLU sobre ReLU para evitar "neuronas muertas":</p>
+        <p>$$\text{LeakyReLU}(x) = \begin{cases} x & \text{si } x > 0 \\ \alpha x & \text{si } x \leq 0 \end{cases}$$</p>
+        
+        <p>Con α típicamente 0.2. Esto permite que gradientes fluyan incluso para activaciones negativas.</p>
+        
+        <p><strong>Sin Batch Normalization en la Primera Capa:</strong></p>
+        
+        <p>Se omite normalización en la primera capa del discriminador para permitir que aprenda características de bajo nivel (como estadísticas de color globales) que son importantes para detectar falsificaciones.</p>
+        
+        <p><strong>Técnicas de Estabilización:</strong></p>
+        
+        <p>Se utiliza <strong>Spectral Normalization</strong> para controlar la constante de Lipschitz del discriminador:</p>
+        <p>$$W_{SN} = \frac{W}{\sigma(W)}$$</p>
+        
+        <p>Donde σ(W) es el mayor valor singular de W.</p>
+        
+        <p>También se aplica <strong>Gradient Penalty</strong> (en WGAN-GP) que añade un término que penaliza gradientes que se alejan de norma 1:</p>
+        <p>$$\lambda \mathbb{E}_{\hat{x}}[(\|\nabla_{\hat{x}} D(\hat{x})\|_2 - 1)^2]$$</p>
+        
+        <blockquote>
+        <p>El Discriminador es como un detective de arte que examina pinturas para decidir si son originales o falsificaciones.</p>
+        
+        <p>Imagina que el detective tiene una lupa especial con muchos aumentos. Primero mira la pintura completa de lejos (la imagen entera de 64×64). Luego acerca la lupa y examina regiones más pequeñas con más detalle (32×32, pero viendo patrones más complejos). Sigue acercando y acercando (16×16, 8×8, 4×4) hasta que está analizando los detalles más mínimos.</p>
+        
+        <p>Al final, después de toda esta investigación, el detective dice un número entre 0 y 1. Si dice 0.99, está muy seguro de que es real. Si dice 0.01, está muy seguro de que es falso. Si dice 0.5, no tiene idea (esto pasa cuando el falsificador es muy bueno).</p>
+        
+        <p>Leaky ReLU es como un filtro que deja pasar las cosas positivas completamente, pero también deja pasar un poquito de las negativas (como agua que gotea por una puerta casi cerrada). Esto es importante porque si el filtro bloquea TODO lo negativo, algunas partes del detector podrían "dormirse" y dejar de aprender.</p>
+        
+        <p>Spectral Normalization es como poner un límite de velocidad al detective. Si el detective es DEMASIADO bueno detectando falsificaciones, el falsificador no puede aprender nada porque siempre lo atrapan. El límite de velocidad mantiene la competencia justa.</p>
+   </blockquote> </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+</html>

@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redes Generativas Adversarias (GANs)</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <div>Redes Generativas Adversarias (GANs)</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>2.5 Laboratorio Práctico: Implementación de GAN</h1>
+
+        <h2>2.5.1 GAN Básica en PyTorch</h2>
+
+        <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+from torchvision.utils import save_image
+import os
+
+# Hiperparámetros
+latent_dim = 100
+img_size = 28
+channels = 1
+batch_size = 64
+lr = 0.0002
+beta1 = 0.5
+num_epochs = 200
+
+# Crear directorio para guardar imágenes
+os.makedirs("generated_images", exist_ok=True)
+
+# Generador
+class Generator(nn.Module):
+    def __init__(self):
+        super(Generator, self).__init__()
+        
+        def block(in_features, out_features, normalize=True):
+            layers = [nn.Linear(in_features, out_features)]
+            if normalize:
+                layers.append(nn.BatchNorm1d(out_features, momentum=0.8))
+            layers.append(nn.LeakyReLU(0.2, inplace=True))
+            return layers
+        
+        self.model = nn.Sequential(
+            *block(latent_dim, 128, normalize=False),
+            *block(128, 256),
+            *block(256, 512),
+            *block(512, 1024),
+            nn.Linear(1024, channels * img_size * img_size),
+            nn.Tanh()
+        )
+    
+    def forward(self, z):
+        img = self.model(z)
+        img = img.view(img.size(0), channels, img_size, img_size)
+        return img
+
+# Discriminador
+class Discriminator(nn.Module):
+    def __init__(self):
+        super(Discriminator, self).__init__()
+        
+        self.model = nn.Sequential(
+            nn.Linear(channels * img_size * img_size, 512),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Linear(512, 256),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Linear(256, 1),
+            nn.Sigmoid()
+        )
+    
+    def forward(self, img):
+        img_flat = img.view(img.size(0), -1)
+        validity = self.model(img_flat)
+        return validity
+
+# Inicialización de pesos
+def weights_init(m):
+    classname = m.__class__.__name__
+    if classname.find('Linear') != -1:
+        nn.init.normal_(m.weight.data, 0.0, 0.02)
+        if m.bias is not None:
+            nn.init.constant_(m.bias.data, 0)
+    elif classname.find('BatchNorm') != -1:
+        nn.init.normal_(m.weight.data, 1.0, 0.02)
+        nn.init.constant_(m.bias.data, 0)
+
+# Configuración del dispositivo
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Crear modelos
+generator = Generator().to(device)
+discriminator = Discriminator().to(device)
+
+# Aplicar inicialización
+generator.apply(weights_init)
+discriminator.apply(weights_init)
+
+# Optimizadores
+optimizer_G = optim.Adam(generator.parameters(), lr=lr, betas=(beta1, 0.999))
+optimizer_D = optim.Adam(discriminator.parameters(), lr=lr, betas=(beta1, 0.999))
+
+# Función de pérdida
+adversarial_loss = nn.BCELoss()
+
+# Dataset MNIST
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize([0.5], [0.5])  # Normalizar a [-1, 1]
+])
+
+dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+
+# Vector de ruido fijo para visualización
+fixed_noise = torch.randn(64, latent_dim, device=device)
+
+# Entrenamiento
+print("Comenzando entrenamiento...")
+for epoch in range(num_epochs):
+    for i, (real_imgs, _) in enumerate(dataloader):
+        batch_size_current = real_imgs.size(0)
+        
+        # Etiquetas para real y falso
+        real_labels = torch.ones(batch_size_current, 1, device=device)
+        fake_labels = torch.zeros(batch_size_current, 1, device=device)
+        
+        real_imgs = real_imgs.to(device)
+        
+        # ---------------------
+        # Entrenar Discriminador
+        # ---------------------
+        optimizer_D.zero_grad()
+        
+        # Pérdida con imágenes reales
+        real_output = discriminator(real_imgs)
+        d_loss_real = adversarial_loss(real_output, real_labels)
+        
+        # Generar imágenes falsas
+        z = torch.randn(batch_size_current, latent_dim, device=device)
+        fake_imgs = generator(z)
+        
+        # Pérdida con imágenes falsas
+        fake_output = discriminator(fake_imgs.detach())
+        d_loss_fake = adversarial_loss(fake_output, fake_labels)
+        
+        # Pérdida total del discriminador
+        d_loss = (d_loss_real + d_loss_fake) / 2
+        d_loss.backward()
+        optimizer_D.step()
+        
+        # ---------------------
+        # Entrenar Generador
+        # ---------------------
+        optimizer_G.zero_grad()
+        
+        # El generador quiere que el discriminador clasifique las fake como real
+        fake_output = discriminator(fake_imgs)
+        g_loss = adversarial_loss(fake_output, real_labels)
+        
+        g_loss.backward()
+        optimizer_G.step()
+    
+    # Imprimir progreso
+    print(f"[Epoch {epoch+1}/{num_epochs}] D_loss: {d_loss.item():.4f}, G_loss: {g_loss.item():.4f}")
+    
+    # Guardar imágenes generadas
+    if (epoch + 1) % 10 == 0:
+        with torch.no_grad():
+            fake_imgs = generator(fixed_noise)
+            save_image(fake_imgs, f"generated_images/epoch_{epoch+1}.png", 
+                      nrow=8, normalize=True)
+
+print("Entrenamiento completado!")
+</code></pre>
+
+        <h2>2.5.2 DCGAN para Imágenes de Mayor Resolución</h2>
+
+        <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+from torchvision.utils import save_image
+import os
+
+# Hiperparámetros
+latent_dim = 100
+img_size = 64
+channels = 3  # RGB
+batch_size = 128
+lr = 0.0002
+beta1 = 0.5
+num_epochs = 100
+ngf = 64  # Tamaño de feature maps en generador
+ndf = 64  # Tamaño de feature maps en discriminador
+
+os.makedirs("dcgan_images", exist_ok=True)
+
+# Generador DCGAN
+class DCGenerator(nn.Module):
+    def __init__(self):
+        super(DCGenerator, self).__init__()
+        self.main = nn.Sequential(
+            # Input: latent_dim x 1 x 1
+            nn.ConvTranspose2d(latent_dim, ngf * 8, 4, 1, 0, bias=False),
+            nn.BatchNorm2d(ngf * 8),
+            nn.ReLU(True),
+            # State: (ngf*8) x 4 x 4
+            
+            nn.ConvTranspose2d(ngf * 8, ngf * 4, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(ngf * 4),
+            nn.ReLU(True),
+            # State: (ngf*4) x 8 x 8
+            
+            nn.ConvTranspose2d(ngf * 4, ngf * 2, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(ngf * 2),
+            nn.ReLU(True),
+            # State: (ngf*2) x 16 x 16
+            
+            nn.ConvTranspose2d(ngf * 2, ngf, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(ngf),
+            nn.ReLU(True),
+            # State: ngf x 32 x 32
+            
+            nn.ConvTranspose2d(ngf, channels, 4, 2, 1, bias=False),
+            nn.Tanh()
+            # Output: channels x 64 x 64
+        )
+    
+    def forward(self, z):
+        return self.main(z)
+
+# Discriminador DCGAN
+class DCDiscriminator(nn.Module):
+    def __init__(self):
+        super(DCDiscriminator, self).__init__()
+        self.main = nn.Sequential(
+            # Input: channels x 64 x 64
+            nn.Conv2d(channels, ndf, 4, 2, 1, bias=False),
+            nn.LeakyReLU(0.2, inplace=True),
+            # State: ndf x 32 x 32
+            
+            nn.Conv2d(ndf, ndf * 2, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(ndf * 2),
+            nn.LeakyReLU(0.2, inplace=True),
+            # State: (ndf*2) x 16 x 16
+            
+            nn.Conv2d(ndf * 2, ndf * 4, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(ndf * 4),
+            nn.LeakyReLU(0.2, inplace=True),
+            # State: (ndf*4) x 8 x 8
+            
+            nn.Conv2d(ndf * 4, ndf * 8, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(ndf * 8),
+            nn.LeakyReLU(0.2, inplace=True),
+            # State: (ndf*8) x 4 x 4
+            
+            nn.Conv2d(ndf * 8, 1, 4, 1, 0, bias=False),
+            nn.Sigmoid()
+            # Output: 1 x 1 x 1
+        )
+    
+    def forward(self, img):
+        return self.main(img).view(-1, 1)
+
+# Inicialización de pesos DCGAN
+def weights_init_dcgan(m):
+    classname = m.__class__.__name__
+    if classname.find('Conv') != -1:
+        nn.init.normal_(m.weight.data, 0.0, 0.02)
+    elif classname.find('BatchNorm') != -1:
+        nn.init.normal_(m.weight.data, 1.0, 0.02)
+        nn.init.constant_(m.bias.data, 0)
+
+# Configuración
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+generator = DCGenerator().to(device)
+discriminator = DCDiscriminator().to(device)
+
+generator.apply(weights_init_dcgan)
+discriminator.apply(weights_init_dcgan)
+
+optimizer_G = optim.Adam(generator.parameters(), lr=lr, betas=(beta1, 0.999))
+optimizer_D = optim.Adam(discriminator.parameters(), lr=lr, betas=(beta1, 0.999))
+
+adversarial_loss = nn.BCELoss()
+
+# Dataset (usando CIFAR-10 como ejemplo)
+transform = transforms.Compose([
+    transforms.Resize(img_size),
+    transforms.CenterCrop(img_size),
+    transforms.ToTensor(),
+    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+])
+
+dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+
+fixed_noise = torch.randn(64, latent_dim, 1, 1, device=device)
+
+# Entrenamiento DCGAN
+print("Entrenando DCGAN...")
+for epoch in range(num_epochs):
+    for i, (real_imgs, _) in enumerate(dataloader):
+        batch_size_current = real_imgs.size(0)
+        
+        real_labels = torch.ones(batch_size_current, 1, device=device)
+        fake_labels = torch.zeros(batch_size_current, 1, device=device)
+        
+        real_imgs = real_imgs.to(device)
+        
+        # Entrenar Discriminador
+        optimizer_D.zero_grad()
+        
+        real_output = discriminator(real_imgs)
+        d_loss_real = adversarial_loss(real_output, real_labels)
+        
+        z = torch.randn(batch_size_current, latent_dim, 1, 1, device=device)
+        fake_imgs = generator(z)
+        
+        fake_output = discriminator(fake_imgs.detach())
+        d_loss_fake = adversarial_loss(fake_output, fake_labels)
+        
+        d_loss = d_loss_real + d_loss_fake
+        d_loss.backward()
+        optimizer_D.step()
+        
+        # Entrenar Generador
+        optimizer_G.zero_grad()
+        
+        fake_output = discriminator(fake_imgs)
+        g_loss = adversarial_loss(fake_output, real_labels)
+        
+        g_loss.backward()
+        optimizer_G.step()
+        
+        if i % 100 == 0:
+            print(f"[Epoch {epoch+1}/{num_epochs}] [Batch {i}/{len(dataloader)}] "
+                  f"D_loss: {d_loss.item():.4f}, G_loss: {g_loss.item():.4f}")
+    
+    # Guardar imágenes
+    with torch.no_grad():
+        fake_imgs = generator(fixed_noise)
+        save_image(fake_imgs, f"dcgan_images/epoch_{epoch+1}.png", 
+                  nrow=8, normalize=True)
+
+print("Entrenamiento DCGAN completado!")
+</code></pre>
+
+        <h2>2.5.3 Visualización del Espacio Latente</h2>
+
+        <pre><code class="language-python">import torch
+import matplotlib.pyplot as plt
+import numpy as np
+
+def interpolate_latent_space(generator, z1, z2, num_steps=10):
+    """
+    Interpola linealmente entre dos puntos en el espacio latente
+    y genera imágenes para cada punto intermedio.
+    """
+    generator.eval()
+    
+    # Crear interpolación lineal
+    ratios = np.linspace(0, 1, num_steps)
+    interpolated = []
+    
+    for ratio in ratios:
+        z = z1 * (1 - ratio) + z2 * ratio
+        with torch.no_grad():
+            img = generator(z)
+            interpolated.append(img.cpu())
+    
+    return interpolated
+
+def visualize_interpolation(images, title="Interpolación en Espacio Latente"):
+    """
+    Visualiza una secuencia de imágenes interpoladas.
+    """
+    fig, axes = plt.subplots(1, len(images), figsize=(15, 3))
+    
+    for i, img in enumerate(images):
+        # Convertir de [-1, 1] a [0, 1]
+        img = (img.squeeze().permute(1, 2, 0).numpy() + 1) / 2
+        if img.shape[-1] == 1:  # Escala de grises
+            img = img.squeeze()
+            axes[i].imshow(img, cmap='gray')
+        else:  # RGB
+            axes[i].imshow(img)
+        axes[i].axis('off')
+    
+    plt.suptitle(title)
+    plt.tight_layout()
+    plt.savefig("interpolation.png", dpi=150, bbox_inches='tight')
+    plt.show()
+
+def explore_latent_dimensions(generator, base_z, dim_to_explore, 
+                               values=np.linspace(-3, 3, 10)):
+    """
+    Explora el efecto de variar una dimensión específica del espacio latente.
+    """
+    generator.eval()
+    images = []
+    
+    for val in values:
+        z = base_z.clone()
+        z[0, dim_to_explore] = val
+        
+        with torch.no_grad():
+            img = generator(z)
+            images.append(img.cpu())
+    
+    return images
+
+# Ejemplo de uso (asumiendo que generator está entrenado)
+"""
+# Crear dos puntos aleatorios en el espacio latente
+z1 = torch.randn(1, latent_dim, 1, 1, device=device)
+z2 = torch.randn(1, latent_dim, 1, 1, device=device)
+
+# Interpolar entre ellos
+images = interpolate_latent_space(generator, z1, z2, num_steps=10)
+visualize_interpolation(images)
+
+# Explorar dimensiones individuales
+base_z = torch.randn(1, latent_dim, 1, 1, device=device)
+for dim in [0, 1, 2, 3, 4]:  # Explorar primeras 5 dimensiones
+    images = explore_latent_dimensions(generator, base_z, dim)
+    visualize_interpolation(images, f"Variando dimensión {dim}")
+"""
+</code></pre>
+
+        <h2>2.5.4 Implementación de Cálculo de FID</h2>
+
+        <pre><code class="language-python">import torch
+import torch.nn as nn
+from torchvision import models, transforms
+import numpy as np
+from scipy import linalg
+
+class InceptionFeatureExtractor:
+    """
+    Extractor de features usando Inception-v3 para calcular FID.
+    """
+    def __init__(self, device='cuda'):
+        self.device = device
+        
+        # Cargar Inception-v3 preentrenado
+        self.inception = models.inception_v3(pretrained=True, transform_input=False)
+        self.inception.fc = nn.Identity()  # Remover última capa FC
+        self.inception = self.inception.to(device)
+        self.inception.eval()
+        
+        # Preprocesamiento para Inception
+        self.preprocess = transforms.Compose([
+            transforms.Resize((299, 299)),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], 
+                               std=[0.229, 0.224, 0.225])
+        ])
+    
+    @torch.no_grad()
+    def extract_features(self, images):
+        """
+        Extrae features de un batch de imágenes.
+        images: tensor de forma (N, C, H, W) en rango [-1, 1]
+        """
+        # Convertir de [-1, 1] a [0, 1]
+        images = (images + 1) / 2
+        
+        # Preprocesar
+        images = self.preprocess(images)
+        
+        # Extraer features
+        features = self.inception(images.to(self.device))
+        
+        return features.cpu().numpy()
+
+def calculate_fid(real_features, generated_features):
+    """
+    Calcula el Fréchet Inception Distance entre dos conjuntos de features.
+    
+    Args:
+        real_features: numpy array de forma (N, D) con features de imágenes reales
+        generated_features: numpy array de forma (M, D) con features de imágenes generadas
+    
+    Returns:
+        FID score (float)
+    """
+    # Calcular estadísticas
+    mu_real = np.mean(real_features, axis=0)
+    sigma_real = np.cov(real_features, rowvar=False)
+    
+    mu_gen = np.mean(generated_features, axis=0)
+    sigma_gen = np.cov(generated_features, rowvar=False)
+    
+    # Calcular FID
+    diff = mu_real - mu_gen
+    
+    # Producto de matrices de covarianza
+    covmean, _ = linalg.sqrtm(sigma_real.dot(sigma_gen), disp=False)
+    
+    # Manejar números complejos (pueden aparecer por errores numéricos)
+    if np.iscomplexobj(covmean):
+        covmean = covmean.real
+    
+    fid = diff.dot(diff) + np.trace(sigma_real + sigma_gen - 2 * covmean)
+    
+    return fid
+
+def evaluate_generator_fid(generator, real_dataloader, num_samples=10000, 
+                           batch_size=50, latent_dim=100, device='cuda'):
+    """
+    Evalúa un generador calculando el FID contra un dataset real.
+    """
+    feature_extractor = InceptionFeatureExtractor(device)
+    
+    # Extraer features de imágenes reales
+    print("Extrayendo features de imágenes reales...")
+    real_features = []
+    samples_collected = 0
+    
+    for images, _ in real_dataloader:
+        if samples_collected >= num_samples:
+            break
+        
+        # Asegurar 3 canales (si es escala de grises)
+        if images.size(1) == 1:
+            images = images.repeat(1, 3, 1, 1)
+        
+        features = feature_extractor.extract_features(images)
+        real_features.append(features)
+        samples_collected += images.size(0)
+    
+    real_features = np.concatenate(real_features, axis=0)[:num_samples]
+    
+    # Generar y extraer features de imágenes generadas
+    print("Generando imágenes y extrayendo features...")
+    generator.eval()
+    gen_features = []
+    
+    for _ in range(num_samples // batch_size):
+        z = torch.randn(batch_size, latent_dim, 1, 1, device=device)
+        
+        with torch.no_grad():
+            fake_images = generator(z)
+        
+        # Asegurar 3 canales
+        if fake_images.size(1) == 1:
+            fake_images = fake_images.repeat(1, 3, 1, 1)
+        
+        features = feature_extractor.extract_features(fake_images)
+        gen_features.append(features)
+    
+    gen_features = np.concatenate(gen_features, axis=0)
+    
+    # Calcular FID
+    fid_score = calculate_fid(real_features, gen_features)
+    
+    return fid_score
+
+# Ejemplo de uso
+"""
+fid = evaluate_generator_fid(
+    generator=generator,
+    real_dataloader=dataloader,
+    num_samples=10000,
+    batch_size=50,
+    latent_dim=100,
+    device=device
+)
+print(f"FID Score: {fid:.2f}")
+"""
+</code></pre>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+
+</html>

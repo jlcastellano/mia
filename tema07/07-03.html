@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redes Generativas Adversarias (GANs)</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <div>Redes Generativas Adversarias (GANs)</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>2.3 Variantes Arquitectónicas</h1>
+
+        <h2>2.3.1 DCGAN (Deep Convolutional GAN)</h2>
+
+        <h3>Explicación Técnica</h3>
+        <p>DCGAN, introducida en 2015, estableció un conjunto de guías arquitectónicas que estabilizaron dramáticamente
+            el entrenamiento de GANs para generación de imágenes.</p>
+
+        <p><strong>Principios Arquitectónicos Clave:</strong></p>
+
+        <p>Se reemplaza pooling por convoluciones con stride. En el Discriminador se usan convoluciones con stride > 1
+            para downsampling en lugar de max pooling. En el Generador se usa convolución transpuesta con stride > 1
+            para upsampling. Esto permite que la red aprenda su propia función de downsampling/upsampling.</p>
+
+        <p>Se aplica Batch Normalization en casi todas las capas. La excepción es la capa de salida de G y la capa de
+            entrada de D. Esto estabiliza la distribución de activaciones internas.</p>
+
+        <p>Se eliminan capas fully connected profundas. La única capa FC es para mapear z a un tensor que se puede
+            reshapear. Esto reduce parámetros y previene overfitting.</p>
+
+        <p>En cuanto a funciones de activación, el Generador usa ReLU en todas las capas excepto la salida, que usa
+            Tanh. El Discriminador usa LeakyReLU con pendiente 0.2.</p>
+
+        <p><strong>Hiperparámetros Recomendados:</strong></p>
+
+        <p>El learning rate es 0.0002 para ambas redes. Se usa Adam con β₁ = 0.5 (reducido del típico 0.9) y β₂ = 0.999.
+            La inicialización de pesos es Normal con media 0 y std 0.02.</p>
+
+        <blockquote>
+            <p>DCGAN es como una receta de cocina para hacer GANs que realmente funcionan. Antes de DCGAN, hacer una GAN
+                era como cocinar sin receta: a veces salía bien, a veces era un desastre, y nadie sabía exactamente por
+                qué.</p>
+
+            <p>Los investigadores probaron muchas combinaciones diferentes y encontraron "la receta perfecta":</p>
+
+            <p><strong>Ingrediente 1: Usa convoluciones en vez de pooling.</strong> Pooling es como usar un colador con
+                agujeros fijos. Convolución con stride es como un colador inteligente que aprende qué tamaño de agujeros
+                funcionan mejor.</p>
+
+            <p><strong>Ingrediente 2: Batch Normalization es tu mejor amigo.</strong> Es como mantener todos los
+                ingredientes a temperatura ambiente antes de mezclarlos. Hace que todo se combine mejor y más
+                predeciblemente.</p>
+
+            <p><strong>Ingrediente 3: No uses demasiadas capas densas.</strong> Las capas densas son como tener
+                demasiados cocineros en la cocina, cada uno cambiando la receta a su manera. Mejor tener pocas.</p>
+
+            <p><strong>Ingrediente 4: Activaciones específicas para cada red.</strong> El Generador usa ReLU (deja pasar
+                las cosas buenas) y Tanh al final (ajusta los colores). El Discriminador usa LeakyReLU (nunca bloquea
+                completamente).</p>
+
+            <p>La arquitectura es como construir algo con bloques LEGO. El Generador empieza con un bloquecito (4×4) y
+                va añadiendo capas que lo hacen más y más grande. El Discriminador hace lo opuesto: recibe el bloque
+                grande y lo va comprimiendo hasta que solo queda un número (real o falso).</p>
+        </blockquote>
+        <h2>2.3.2 WGAN (Wasserstein GAN)</h2>
+
+        <h3>Explicación Técnica</h3>
+        <p>WGAN aborda los problemas fundamentales de estabilidad reemplazando la divergencia JS por la distancia
+            Wasserstein (Earth-Mover Distance).</p>
+
+        <p><strong>Distancia Wasserstein:</strong></p>
+
+        <p>Intuitivamente, la distancia Wasserstein mide el "costo mínimo" de transportar masa de la distribución \( p_g
+            \) a \( p_{data} \):</p>
+        <p>$$W(p_{data}, p_g) = \inf_{\gamma \in \Pi(p_{data}, p_g)} \mathbb{E}_{(x,y) \sim \gamma}[\|x - y\|]$$</p>
+
+        <p>Donde Π es el conjunto de todas las distribuciones conjuntas con marginales \( p_{data} \) y \( p_g \).</p>
+
+        <p><strong>Ventajas sobre Jensen-Shannon:</strong></p>
+
+        <p>A diferencia de JS, la distancia Wasserstein proporciona gradientes útiles incluso cuando las distribuciones
+            no se solapan. Si \( p_{data} \) y \( p_g \) son deltas de Dirac en puntos diferentes, JS da log(2)
+            constante (sin gradiente), pero W da la distancia euclidiana entre los puntos (gradiente útil).</p>
+
+        <p><strong>Dualidad de Kantorovich-Rubinstein:</strong></p>
+
+        <p>Calcular W directamente es intratable. Usando dualidad:</p>
+        <p>$$W(p_{data}, p_g) = \sup_{\|f\|_L \leq 1} \mathbb{E}_{x \sim p_{data}}[f(x)] - \mathbb{E}_{x \sim
+            p_g}[f(x)]$$</p>
+
+        <p>Donde el supremo es sobre todas las funciones 1-Lipschitz (funciones donde \( |f(x) - f(y)| \leq |x - y| \)
+            para todo x, y).</p>
+
+        <p><strong>Objetivo WGAN:</strong></p>
+        <p>$$\min_G \max_{D \in \mathcal{D}} \mathbb{E}_{x \sim p_{data}}[D(x)] - \mathbb{E}_{z \sim p_z}[D(G(z))]$$</p>
+
+        <p>Donde D (llamado "crítico" en WGAN, no discriminador) debe ser 1-Lipschitz.</p>
+
+        <p><strong>Enforcing Lipschitz:</strong></p>
+
+        <p>El <strong>Weight Clipping</strong> (WGAN original) recorta pesos a [-c, c] después de cada actualización. El
+            <strong>Gradient Penalty</strong> (WGAN-GP) añade un término de penalización que fuerza gradientes cercanos
+            a norma 1.</p>
+
+        <p><strong>Cambios Prácticos en WGAN:</strong></p>
+
+        <p>El discriminador se convierte en "crítico" y no usa sigmoid al final (salida sin acotar). Se entrena el
+            crítico más veces que el generador (típicamente 5:1). Se usa RMSprop en lugar de Adam (en la versión
+            original) u optimizadores sin momentum.</p>
+
+        <blockquote>
+            <p>Imagina que tienes dos montones de arena: uno representa las imágenes reales y otro las imágenes
+                generadas. La distancia Wasserstein es como preguntarse: "¿cuánto trabajo me costaría mover toda la
+                arena del montón falso para que quede exactamente igual al montón real?"</p>
+
+            <p>Si los montones son muy parecidos, necesitas mover poquita arena (distancia pequeña). Si son muy
+                diferentes, necesitas mover toneladas (distancia grande). Lo brillante es que siempre te dice CUÁNTO
+                trabajo, incluso si los montones están en lados completamente opuestos del patio.</p>
+
+            <p>La divergencia Jensen-Shannon tiene un problema: si los montones no se tocan para nada, simplemente dice
+                "son diferentes" y ya. No te dice si están a un metro de distancia o a un kilómetro. Pero Wasserstein sí
+                te dice: "el falso está a 50 metros del real" o "está a 500 metros". Esa información extra es súper útil
+                para saber cómo mejorar.</p>
+
+            <p>El "crítico" en WGAN (ya no le llamamos discriminador) no dice "esto es real o falso". En su lugar, da un
+                puntaje: números más altos significan "más parecido a real". Como ya no es un clasificador de sí/no, no
+                tiene el problema de estar "demasiado seguro".</p>
+
+            <p>La restricción Lipschitz es como una regla de velocidad máxima. Si dos imágenes son muy similares, el
+                crítico no puede dar puntajes muy diferentes. Es como decir: "si dos personas son casi idénticas, tus
+                puntuaciones para ellas también deben ser casi idénticas". Esto evita que el crítico haga trampa dando
+                puntuaciones extremas.</p>
+
+            <p>El weight clipping es la forma bruta de hacer esto: simplemente recortas los pesos para que nunca sean
+                muy grandes. El gradient penalty es más elegante: le dices al crítico "te voy a revisar los gradientes,
+                y si son muy grandes o muy pequeños, te penalizo".</p>
+        </blockquote>
+        <h2>2.3.3 StyleGAN y StyleGAN2</h2>
+
+        <h3>Explicación Técnica</h3>
+        <p>StyleGAN revolucionó la generación de imágenes introduciendo control de estilo por capas y logrando
+            resultados fotorrealistas sin precedentes.</p>
+
+        <p><strong>Arquitectura del Mapping Network:</strong></p>
+
+        <p>En lugar de alimentar z directamente al generador, primero se transforma a través de un mapping network de 8
+            capas FC:</p>
+        <p>$$w = f(z)$$</p>
+
+        <p>Donde \( w \in \mathcal{W} \) es el espacio de estilo intermedio. Este espacio es menos "enredado" que \(
+            \mathcal{Z} \), permitiendo mejor disentanglement de factores de variación.</p>
+
+        <p><strong>Síntesis con Modulación de Estilo:</strong></p>
+
+        <p>El generador (synthesis network) no recibe w directamente. En su lugar, w controla los parámetros de
+            normalización en cada capa mediante Adaptive Instance Normalization (AdaIN):</p>
+        <p>$$\text{AdaIN}(x_i, y) = y_{s,i}\frac{x_i - \mu(x_i)}{\sigma(x_i)} + y_{b,i}$$</p>
+
+        <p>Donde \( y_s \) e \( y_b \) (escala y sesgo) se derivan de w a través de capas aprendidas. Cada capa del
+            synthesis network puede recibir un w diferente, permitiendo control de estilo a diferentes escalas.</p>
+
+        <p><strong>Control por Capas:</strong></p>
+
+        <p>Las primeras capas (baja resolución, 4×4 a 8×8) controlan características gruesas como pose, forma de cara.
+            Las capas medias (16×16 a 32×32) controlan características intermedias como forma de ojos, nariz. Las
+            últimas capas (64×64 y superiores) controlan detalles finos como textura de piel, color de pelo.</p>
+
+        <p><strong>Inyección de Ruido:</strong></p>
+
+        <p>Se añade ruido estocástico después de cada capa convolucional. Esto permite variación estocástica en detalles
+            finos (posición exacta de pelos, poros) sin cambiar la identidad.</p>
+
+        <p><strong>Style Mixing:</strong></p>
+
+        <p>Durante entrenamiento, con cierta probabilidad se usan diferentes w para diferentes capas (crossover). Esto
+            regulariza la red y fuerza cada rango de capas a controlar aspectos independientes.</p>
+
+        <p><strong>Mejoras en StyleGAN2:</strong></p>
+
+        <p>StyleGAN2 aborda artefactos del original. Se remueve la normalización de AdaIN del path principal (causa
+            artefactos de "gotitas de agua") y se usa Weight Demodulation. El Path Length Regularization fomenta que
+            cambios pequeños en w produzcan cambios proporcionales en la imagen.</p>
+
+        <blockquote>
+            <p>StyleGAN es como tener un artista increíblemente talentoso que puede pintar retratos perfectos, pero lo
+                mejor es que puedes darle instrucciones muy específicas sobre cómo quieres que sea el retrato.</p>
+
+            <p>El <strong>Mapping Network</strong> es como un traductor. El ruido aleatorio z es como escribir tu pedido
+                en un idioma raro. El traductor lo convierte a instrucciones claras w que el artista entiende mejor. Por
+                ejemplo, transforma "números aleatorios" a "persona joven, pelo rubio, sonriendo".</p>
+
+            <p>El <strong>Synthesis Network</strong> es el artista que realmente pinta. Pero aquí viene lo interesante:
+                el artista trabaja en capas, como cuando pintas primero el fondo, luego las formas grandes, luego los
+                detalles.</p>
+
+            <p><strong>AdaIN (modulación de estilo)</strong> es como susurrarle al artista instrucciones específicas en
+                cada etapa. Cuando está pintando las formas grandes, le susurras "cara redonda". Cuando está pintando
+                detalles medios, le susurras "nariz pequeña". Cuando está pintando detalles finos, le susurras "piel
+                bronceada".</p>
+
+            <p>Lo genial es que puedes mezclar instrucciones de diferentes personas. Imagina que tienes una foto de tu
+                mamá y otra de tu papá. Puedes decirle al artista: "usa las instrucciones de mamá para la forma general
+                de la cara, pero las instrucciones de papá para el color de ojos". El resultado sería una mezcla muy
+                específica.</p>
+
+            <p>El <strong>ruido inyectado</strong> es como añadir pequeñas imperfecciones aleatorias que hacen las
+                imágenes más realistas. Sin ruido, todas las imágenes serían "demasiado perfectas", como muñecas de
+                plástico. El ruido añade poros, pelos sueltos, pequeñas asimetrías que hacen las caras parecer humanas
+                de verdad.</p>
+
+            <p><strong>StyleGAN2</strong> mejoró la receta. El primer StyleGAN tenía un problema: a veces aparecían
+                manchitas raras como gotitas de agua en las imágenes. StyleGAN2 encontró que esto era por cómo se hacía
+                la normalización y lo arregló. También añadió reglas para que cuando cambias un poquito las
+                instrucciones, la imagen cambie solo un poquito (no de golpe).</p>
+        </blockquote>
+        <h2>2.3.4 Progressive GAN</h2>
+
+        <h3>Explicación Técnica</h3>
+        <p>Progressive GAN introduce un esquema de entrenamiento donde la resolución de la imagen crece gradualmente
+            durante el entrenamiento.</p>
+
+        <p><strong>Concepto Central:</strong></p>
+
+        <p>El entrenamiento comienza generando y discriminando imágenes de 4×4 pixeles. Gradualmente se añaden capas
+            para aumentar la resolución: 4×4 → 8×8 → 16×16 → 32×32 → ... → 1024×1024.</p>
+
+        <p><strong>Transición Suave:</strong></p>
+
+        <p>Cuando se añade una nueva resolución, se hace una transición gradual usando un factor de mezcla α que va de 0
+            a 1. Esto evita cambios bruscos que desestabilizarían el entrenamiento.</p>
+
+        <p><strong>Ventajas:</strong></p>
+
+        <p>En cuanto a estabilidad, el modelo aprende primero estructura gruesa (más fácil) antes de detalles finos (más
+            difícil). Respecto a velocidad, la mayoría del entrenamiento ocurre a resoluciones bajas, que son mucho más
+            rápidas de procesar. Sobre calidad, evita que el generador tenga que aprender patrones de múltiples escalas
+            simultáneamente.</p>
+
+        <p><strong>Minibatch Standard Deviation:</strong></p>
+
+        <p>ProGAN introduce una capa que añade una estadística del batch (desviación estándar de features) como canal
+            adicional. Esto ayuda al discriminador a detectar falta de diversidad (mode collapse) al ver si todas las
+            muestras del batch son demasiado similares.</p>
+
+        <p><strong>Ecualización de Learning Rate:</strong></p>
+
+        <p>En lugar de inicialización cuidadosa, ProGAN escala los pesos en tiempo de ejecución. Esto asegura que todas
+            las capas tengan la misma velocidad de aprendizaje dinámica.</p>
+
+        <blockquote>
+            <p>Progressive GAN es como enseñarle a alguien a dibujar empezando por lo más fácil y subiendo la dificultad
+                gradualmente.</p>
+
+            <p>Imagina que quieres aprender a dibujar retratos súper detallados. Un mal profesor te daría un lienzo
+                gigante desde el primer día y te diría "dibuja cada pestaña, cada poro". ¡Imposible!</p>
+
+            <p>Un buen profesor (Progressive GAN) haría esto: Primero te da un lienzo diminuto donde solo caben 4×4
+                cuadraditos. Solo tienes que decidir colores básicos, como "este lado es más claro". Fácil.</p>
+
+            <p>Cuando dominas eso, te dan un lienzo de 8×8. Ahora puedes definir formas básicas. Luego 16×16, donde ya
+                se ven ojos y boca como manchas. Después 32×32, donde las formas se definen mejor. Y así sucesivamente
+                hasta llegar a lienzos enormes de 1024×1024 con todos los detalles imaginables.</p>
+
+            <p>La transición suave (el factor α) es como cuando el profesor te da el lienzo nuevo pero te dice "puedes
+                seguir usando tu técnica anterior mientras te acostumbras". Empiezas 100% con la técnica vieja (α = 0),
+                y gradualmente usas más y más la técnica nueva (α → 1).</p>
+
+            <p>El Minibatch Standard Deviation es un truco para detectar si el artista está haciendo trampa dibujando
+                siempre lo mismo. El crítico mira un grupo de dibujos y calcula qué tan diferentes son entre sí. Si son
+                todos casi idénticos, algo está mal.</p>
+        </blockquote>
+        <h2>2.3.5 CycleGAN</h2>
+
+        <h3>Explicación Técnica</h3>
+        <p>CycleGAN permite traducción imagen-a-imagen sin necesidad de pares de entrenamiento alineados.</p>
+
+        <p><strong>Problema que Resuelve:</strong></p>
+
+        <p>En traducción imagen-a-imagen supervisada (como Pix2Pix), necesitas pares exactos: foto del mismo lugar en
+            verano e invierno, foto del mismo caballo y una cebra idéntica, etc. Estos pares son extremadamente
+            difíciles o imposibles de obtener.</p>
+
+        <p>CycleGAN solo necesita dos conjuntos no pareados: uno de dominio X (caballos) y otro de dominio Y (cebras),
+            sin ninguna correspondencia entre imágenes individuales.</p>
+
+        <p><strong>Arquitectura:</strong></p>
+
+        <p>Se tienen dos generadores: \( G: X \rightarrow Y \) que transforma caballos en cebras y \( F: Y \rightarrow X
+            \) que transforma cebras en caballos. También hay dos discriminadores: \( D_Y \) que distingue cebras reales
+            de \( G(x) \) y \( D_X \) que distingue caballos reales de \( F(y) \).</p>
+
+        <p><strong>Cycle Consistency Loss:</strong></p>
+
+        <p>La innovación clave es requerir que las traducciones sean invertibles:</p>
+        <p>$$\mathcal{L}_{cyc}(G, F) = \mathbb{E}_{x \sim p_{data}(x)}[\|F(G(x)) - x\|_1] + \mathbb{E}_{y \sim
+            p_{data}(y)}[\|G(F(y)) - y\|_1]$$</p>
+
+        <p>Si conviertes un caballo en cebra y luego esa cebra de vuelta en caballo, deberías obtener el caballo
+            original.</p>
+
+        <p><strong>Objetivo Completo:</strong></p>
+        <p>$$\mathcal{L}(G, F, D_X, D_Y) = \mathcal{L}_{GAN}(G, D_Y, X, Y) + \mathcal{L}_{GAN}(F, D_X, Y, X) + \lambda
+            \mathcal{L}_{cyc}(G, F)$$</p>
+
+        <p>Donde λ controla la importancia de la consistencia cíclica (típicamente 10).</p>
+
+        <p><strong>Identity Loss (opcional):</strong></p>
+
+        <p>Para preservar color cuando se traduce entre dominios similares, se puede añadir un término que penaliza
+            cambios innecesarios.</p>
+
+        <p><strong>Arquitectura del Generador:</strong></p>
+
+        <p>CycleGAN usa generadores tipo encoder-decoder con bloques residuales: Encoder (convoluciones con stride) →
+            Transformer (9 bloques residuales) → Decoder (convoluciones transpuestas).</p>
+
+        <blockquote>
+            <p>CycleGAN es como tener dos traductores mágicos que pueden convertir cosas de un tipo en otro y viceversa.
+            </p>
+
+            <p>Imagina que tienes un montón de fotos de caballos y otro montón de fotos de cebras, pero ninguna foto es
+                "del mismo animal". No tienes una foto de un caballo específico pintado con rayas de cebra. Solo tienes
+                fotos sueltas de caballos y fotos sueltas de cebras.</p>
+
+            <p>CycleGAN entrena dos máquinas: una que convierte caballos en cebras (G) y otra que convierte cebras en
+                caballos (F).</p>
+
+            <p>El truco genial es el <strong>cycle consistency</strong>: si conviertes un caballo en cebra y luego esa
+                cebra de vuelta en caballo, debes obtener el caballo original. Es como la prueba de una buena traducción
+                de idiomas: si traduces del español al chino y luego del chino al español, deberías obtener el texto
+                original.</p>
+
+            <p>¿Por qué esto funciona? Porque obliga a las máquinas a preservar la información importante. Si G
+                convirtiera todos los caballos en la misma cebra genérica, F no tendría forma de saber qué caballo
+                original recuperar. Así que G tiene que "esconder" información del caballo original en la cebra
+                generada, lo cual lo fuerza a hacer traducciones sensatas.</p>
+
+            <p>El discriminador \( D_Y \) es como un experto en cebras que revisa si las cebras generadas se ven reales.
+                El discriminador \( D_X \) es el experto en caballos.</p>
+
+            <p>La identity loss es un truco extra: si ya tienes una cebra y la pasas por la máquina de "convertir a
+                cebra", debería salir igual. No tiene sentido convertir algo que ya está en el formato correcto.</p>
+        </blockquote>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+
+</html>

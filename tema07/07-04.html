@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redes Generativas Adversarias (GANs)</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <div>Redes Generativas Adversarias (GANs)</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>2.4 Métricas de Evaluación</h1>
+
+        <h2>2.4.1 Inception Score (IS)</h2>
+
+        <h3>Explicación Técnica</h3>
+        <p>El Inception Score utiliza un clasificador de imágenes preentrenado (Inception-v3) para evaluar la calidad y
+            diversidad de imágenes generadas.</p>
+
+        <p><strong>Formulación:</strong></p>
+        <p>$$IS = \exp\left(\mathbb{E}_{x \sim p_g}\left[D_{KL}(p(y|x) \| p(y))\right]\right)$$</p>
+
+        <p>Donde p(y|x) es la distribución de clases predicha por Inception para la imagen x, y p(y) es la distribución
+            marginal promediada sobre todas las imágenes generadas.</p>
+
+        <p><strong>Componentes del Score:</strong></p>
+
+        <p>La calidad está capturada porque si las imágenes son claras y reconocibles, p(y|x) será muy "peaked" (alta
+            confianza en una clase), resultando en alta entropía condicional. La diversidad está capturada porque si hay
+            variedad de imágenes, p(y) será más uniforme (distribuida entre muchas clases).</p>
+
+        <p><strong>Rango e Interpretación:</strong></p>
+
+        <p>El mínimo teórico es 1 (todas las imágenes idénticas o no reconocibles). El máximo teórico es igual al número
+            de clases si las imágenes se distribuyen uniformemente entre clases con confianza perfecta. Para
+            ImageNet-1000, los mejores modelos logran IS ≈ 200-300.</p>
+
+        <p><strong>Limitaciones:</strong></p>
+
+        <p>El IS solo considera categorías de ImageNet, es insensible a diversidad dentro de una clase (mil caras
+            diferentes tienen IS bajo porque todas son "cara"), no detecta overfitting al training set, y es sensible al
+            número de muestras (mínimo ~50,000 recomendado).</p>
+
+        <blockquote>
+            <p>El Inception Score es como pedirle a un robot muy listo que mire las imágenes generadas y responda dos
+                preguntas.</p>
+
+            <p><strong>Pregunta 1: "¿Puedes reconocer qué hay en cada imagen?"</strong> Si el robot mira una imagen y
+                dice "¡Esto es definitivamente un perro, estoy 99% seguro!", eso es bueno. Si dice "Hmm... ¿es un perro?
+                ¿O un gato? ¿O una mesa? No tengo idea", eso es malo. Imágenes claras = puntuación alta.</p>
+
+            <p><strong>Pregunta 2: "¿Hay variedad en las imágenes?"</strong> Si el robot mira todas las imágenes y dice
+                "son todas perros", eso es malo (poca diversidad). Si dice "hay perros, gatos, carros, árboles,
+                barcos...", eso es bueno (mucha diversidad).</p>
+
+            <p>El IS combina ambas respuestas. Necesitas buena calidad Y buena diversidad para una puntuación alta.</p>
+
+            <p>El problema del IS es que el robot solo conoce las cosas de su entrenamiento (ImageNet, que tiene
+                animales, objetos, etc.). Si generas caras humanas, el robot no sabe muchas categorías de caras, así que
+                el IS no funciona bien para ese caso.</p>
+        </blockquote>
+        <h2>2.4.2 Fréchet Inception Distance (FID)</h2>
+
+        <h3>Explicación Técnica</h3>
+        <p>FID compara las estadísticas de features de alto nivel entre imágenes reales y generadas, proporcionando una
+            métrica más robusta que IS.</p>
+
+        <p><strong>Procedimiento:</strong></p>
+
+        <p>Se extraen features de la penúltima capa (pool3) de Inception-v3 para imágenes reales y generadas. Se
+            calculan media y covarianza de estos vectores de features (2048-dimensionales). Se computa la distancia de
+            Fréchet entre las dos Gaussianas resultantes.</p>
+
+        <p><strong>Fórmula:</strong></p>
+        <p>$$FID = \|\mu_r - \mu_g\|_2^2 + \text{Tr}\left(\Sigma_r + \Sigma_g - 2(\Sigma_r \Sigma_g)^{1/2}\right)$$</p>
+
+        <p>Donde \( (\mu_r, \Sigma_r) \) son las estadísticas de imágenes reales y \( (\mu_g, \Sigma_g) \) de las
+            generadas.</p>
+
+        <p><strong>Interpretación geométrica:</strong></p>
+
+        <p>FID mide la distancia entre dos distribuciones Gaussianas multivariadas. El primer término \( \|\mu_r -
+            \mu_g\|_2^2 \) mide si las imágenes generadas están "centradas" correctamente en el espacio de features. El
+            segundo término mide si la "forma" de la distribución (correlaciones entre features) coincide.</p>
+
+        <p><strong>Ventajas sobre IS:</strong></p>
+
+        <p>FID compara directamente con datos reales (no solo con clases de ImageNet). Captura diversidad y calidad
+            simultáneamente. Es más consistente con evaluación humana. Puede usarse con cualquier dataset (no solo
+            ImageNet).</p>
+
+        <p><strong>Valores Típicos:</strong></p>
+
+        <p>FID = 0 significa distribuciones idénticas (perfecto). FID < 10 es excelente para rostros de alta calidad.
+                FID 10-50 indica buena calidad. FID> 100 significa diferencias notables.</p>
+
+        <p><strong>Consideraciones Prácticas:</strong></p>
+
+        <p>Se necesitan mínimo ~10,000 muestras para estimaciones estables. Debe calcularse con las mismas imágenes
+            reales para comparar modelos. La resolución de imágenes afecta: siempre comparar con la misma resolución.
+        </p>
+
+        <blockquote>
+            <p>FID es como comparar dos clases de arte midiendo si los estudiantes producen arte similar.</p>
+
+            <p>Imagina que tienes una clase de arte (imágenes reales) y otra clase (imágenes generadas). En lugar de
+                mirar cada dibujo individualmente, miras el "estilo general" de cada clase.</p>
+
+            <p>El robot Inception mira cada imagen y anota cosas como: "tiene muchos colores cálidos", "hay formas
+                redondeadas", "parece muy detallado". Estas notas son los "features".</p>
+
+            <p>Después de mirar todas las imágenes de la clase real, el robot calcula el promedio de todas las notas:
+                "en promedio, los dibujos tienen X cantidad de colores cálidos, Y cantidad de formas redondeadas...".
+                También calcula qué tan variados son los estilos dentro de la clase.</p>
+
+            <p>Hace lo mismo con la clase generada. Luego compara: ¿las dos clases tienen promedios similares? ¿Tienen
+                variedades similares?</p>
+
+            <p>FID es la "distancia" entre las dos clases. Si FID es cero, las clases son idénticas estadísticamente. Si
+                FID es grande, las clases son muy diferentes.</p>
+
+            <p>La gran ventaja de FID es que realmente compara con las imágenes reales, no solo mide si las imágenes "se
+                reconocen". Puedes generar imágenes muy reconocibles pero que no se parecen en nada a las fotos reales.
+                FID detectaría esto, IS no.</p>
+        </blockquote>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+
+</html>

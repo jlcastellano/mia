@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redes Generativas Adversarias (GANs)</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>Redes Generativas Adversarias (GANs)</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>2.2 Dinámica del Entrenamiento</h1>
+        
+        <h2>2.2.1 Algoritmo de Entrenamiento Alternado</h2>
+        
+        <h3>Explicación Técnica</h3>
+        <p>El entrenamiento de GANs sigue un proceso alternado donde cada red se actualiza mientras la otra permanece fija.</p>
+        
+        <p><strong>Paso 1: Actualizar el Discriminador</strong></p>
+        
+        <p>Se muestrea un minibatch de m ejemplos reales \( \{x^{(1)}, ..., x^{(m)}\} \) del dataset. Luego se muestrea un minibatch de m vectores de ruido \( \{z^{(1)}, ..., z^{(m)}\} \) de \( p_z \). Se calcula el gradiente ascendente (maximizar):</p>
+        <p>$$\nabla_{\theta_d} \frac{1}{m} \sum_{i=1}^{m} \left[\log D(x^{(i)}) + \log(1 - D(G(z^{(i)})))\right]$$</p>
+        
+        <p>Finalmente se actualiza: \( \theta_d \leftarrow \theta_d + \eta \cdot \nabla_{\theta_d} \)</p>
+        
+        <p><strong>Paso 2: Actualizar el Generador</strong></p>
+        
+        <p>Se muestrea nuevo ruido \( \{z^{(1)}, ..., z^{(m)}\} \). Se calcula el gradiente descendente:</p>
+        <p>$$\nabla_{\theta_g} \frac{1}{m} \sum_{i=1}^{m} \log(1 - D(G(z^{(i)})))$$</p>
+        
+        <p>Se actualiza: \( \theta_g \leftarrow \theta_g - \eta \cdot \nabla_{\theta_g} \)</p>
+        
+        <p><strong>Truco del Non-Saturating Loss:</strong></p>
+        
+        <p>En la práctica, el objetivo original del generador \( \log(1 - D(G(z))) \) tiene gradientes muy pequeños cuando D es bueno (D(G(z)) ≈ 0). En su lugar, se maximiza:</p>
+        <p>$$\max_G \mathbb{E}_{z}[\log D(G(z))]$$</p>
+        
+        <p>Esto proporciona gradientes más fuertes al inicio del entrenamiento. Matemáticamente minimiza una divergencia diferente, pero funciona mejor en la práctica.</p>
+        
+        <p><strong>Ratio de Actualizaciones:</strong></p>
+        
+        <p>A menudo se actualizan D múltiples veces (k pasos) por cada actualización de G. Valores típicos: k = 1 a 5. Esto mantiene a D suficientemente entrenado para proporcionar gradientes útiles a G.</p>
+        
+        <blockquote>
+        <p>El entrenamiento es como una clase de arte muy especial donde el falsificador y el detective aprenden por turnos.</p>
+        
+        <p><strong>Turno del Detective:</strong> El profesor trae billetes reales y billetes que el falsificador acaba de hacer. Le dice al detective "examínalos y trata de identificar cuáles son falsos". El detective estudia, toma notas, y mejora su capacidad de detectar. Los billetes del falsificador no cambian durante este turno.</p>
+        
+        <p><strong>Turno del Falsificador:</strong> Ahora los conocimientos del detective están congelados. El falsificador hace nuevos billetes y los pasa por el detective. Si el detective dice "¡falso!", el falsificador aprende qué salió mal. Si el detective dice "parece real...", el falsificador sabe que va por buen camino. Usa esta información para mejorar su técnica.</p>
+        
+        <p>Luego vuelve el turno del detective, y así sucesivamente miles de veces.</p>
+        
+        <p>El "truco del Non-Saturating Loss" es como cambiar la pregunta que le hacemos al falsificador. En vez de preguntarle "¿qué tan mal te fue?" (que no te dice mucho cuando todo te sale mal), le preguntamos "¿qué tan cerca estuviste de engañar al detective?" Aunque falles, te da mejor información sobre cómo mejorar.</p>
+        
+        <p>A veces dejamos que el detective practique más turnos que el falsificador (el ratio k). Esto es porque si el detective es muy malo, sus consejos para el falsificador no sirven de nada. Es como si un crítico de arte que no sabe nada te dijera qué mejorar: sus consejos serían inútiles. Necesitamos que el detective sea competente para que pueda dar retroalimentación útil.</p>
+        </blockquote>
+        <h2>2.2.2 Problemas Comunes de Entrenamiento</h2>
+        
+        <h3>Mode Collapse</h3>
+        
+        <h4>Explicación Técnica</h4>
+        <p>El mode collapse ocurre cuando el generador encuentra unos pocos outputs que engañan consistentemente al discriminador y se "atasca" produciendo solo esos, ignorando la diversidad de la distribución real.</p>
+        
+        <p><strong>Manifestaciones:</strong></p>
+        
+        <p>En el <strong>colapso completo</strong> el generador produce una única imagen (o muy pocas) sin importar el input z. En el <strong>colapso parcial</strong> el generador captura algunos modos de la distribución pero ignora otros. Por ejemplo, genera rostros femeninos pero nunca masculinos.</p>
+        
+        <p><strong>Causa matemática:</strong></p>
+        
+        <p>El objetivo del generador no penaliza explícitamente la falta de diversidad. Si existe un modo que consistentemente engaña a D, G puede explotarlo indefinidamente:</p>
+        <p>$$G^* = \arg\max_G \mathbb{E}_z[\log D(G(z))]$$</p>
+        
+        <p>No hay término que fuerce \( p_g \) a cubrir todos los modos de \( p_{data} \).</p>
+        
+        <p><strong>Soluciones:</strong></p>
+        
+        <p>El <strong>Minibatch Discrimination</strong> permite a D mirar estadísticas del batch completo. La <strong>Feature Matching</strong> cambia el objetivo de G para matchear estadísticas de features en lugar de engañar a D. El <strong>Unrolled GANs</strong> hace que G optimice contra futuras versiones de D, previniendo la explotación de debilidades específicas de D actual.</p>
+        
+        <blockquote>
+        <p>Mode collapse es cuando el falsificador descubre un truco que siempre funciona y se vuelve perezoso.</p>
+        
+        <p>Imagina que el falsificador descubre que un tipo específico de billete de 20 dólares engaña al detective cada vez. En lugar de aprender a hacer billetes de 5, 10, 50 y 100 también, se dedica a hacer solo ese billete de 20. Técnicamente está "ganando" porque engaña al detective, pero está haciendo trampa porque un banco real tiene MUCHOS tipos de billetes.</p>
+        
+        <p>Es como si le pidieras a alguien que dibuje animales y solo dibuja perros. Puede ser muy bueno dibujando perros, pero la tarea era dibujar animales (plural, variados).</p>
+        
+        <p>Las soluciones son como reglas adicionales del juego. El Minibatch Discrimination es como si el detective pudiera mirar varios billetes a la vez y decir "hey, estos 10 billetes son IDÉNTICOS, eso es sospechoso, los billetes reales son todos ligeramente diferentes". Feature Matching es cambiar el objetivo: en vez de decirle al falsificador "engaña al detective", le decimos "haz que tus billetes tengan las mismas características promedio que los reales" (mismo tipo de papel, mismos colores promedio, etc.).</p>
+        </blockquote>
+        <h3>Vanishing Gradients</h3>
+        
+        <h4>Explicación Técnica</h4>
+        <p>Los vanishing gradients ocurren cuando D se vuelve demasiado bueno, haciendo que los gradientes para G se vuelvan extremadamente pequeños.</p>
+        
+        <p><strong>Análisis matemático:</strong></p>
+        
+        <p>Si D es óptimo, \( D(G(z)) \approx 0 \) para todas las muestras generadas. El gradiente del objetivo original es:</p>
+        <p>$$\nabla_{\theta_g} \log(1 - D(G(z))) = \frac{-\nabla_{\theta_g} D(G(z))}{1 - D(G(z))}$$</p>
+        
+        <p>Cuando \( D(G(z)) \approx 0 \):</p>
+        <p>$$\nabla_{\theta_g} \log(1 - D(G(z))) \approx -\nabla_{\theta_g} D(G(z))$$</p>
+        
+        <p>El problema es que \( \nabla_{\theta_g} D(G(z)) \) también es pequeño porque D está saturado en la región donde caen las muestras generadas.</p>
+        
+        <p><strong>Relación con la divergencia JS:</strong></p>
+        
+        <p>Cuando las distribuciones \( p_{data} \) y \( p_g \) tienen soportes disjuntos (no se solapan), la divergencia JS es máxima y constante:</p>
+        <p>$$D_{JS}(p_{data} \| p_g) = \log 2$$</p>
+        
+        <p>Esto significa gradientes cero: no hay señal de cómo mejorar G porque, desde la perspectiva de JS, todas las distribuciones que no se solapan son "igual de malas".</p>
+        
+        <p><strong>Soluciones:</strong></p>
+        
+        <p>El <strong>Non-saturating loss</strong> sustituye el objetivo por \( \max_G \log D(G(z)) \) que tiene mejor comportamiento de gradientes. La <strong>Distancia Wasserstein</strong> (en WGANs) usa una métrica que no satura cuando las distribuciones no se solapan. El <strong>Label Smoothing</strong> usa etiquetas suavizadas (0.9 en vez de 1.0 para reales) para prevenir que D se vuelva demasiado confiado.</p>
+        
+        <blockquote>
+        <p>Vanishing gradients es cuando el detective es TAN bueno que el falsificador no puede aprender nada.</p>
+        
+        <p>Imagina que el detective puede detectar cualquier billete falso instantáneamente con 100% de certeza. Cada vez que el falsificador le muestra algo, el detective dice "FALSO" sin ni siquiera mirar detenidamente. El problema es que el falsificador no recibe ninguna pista sobre cómo mejorar. Es como si tu profesor te dijera "mal" en cada problema pero nunca te explicara qué está mal o cómo corregirlo.</p>
+        
+        <p>Los gradientes son como las pistas que recibe el falsificador. "Tu papel está mal", "el color está un poco apagado", "el número de serie no se ve real". Cuando los gradientes desaparecen, es como si todas las pistas desaparecieran. El falsificador está a ciegas.</p>
+        
+        <p>La divergencia Jensen-Shannon tiene un problema fatal aquí: si los billetes falsos son MUY diferentes de los reales (tanto que no hay confusión posible), la JS dice "son completamente diferentes" y ya. No dice "este es 80% diferente y aquel es 60% diferente". Todos son igual de "completamente diferentes". Sin esa graduación, no hay forma de saber qué dirección mejora.</p>
+        
+        <p>Las soluciones son como hacer el juego más justo. El label smoothing es decirle al detective "nunca estés 100% seguro, siempre considera que podrías equivocarte". Esto lo hace un poco menos perfecto, lo cual paradójicamente ayuda al falsificador a aprender.</p>
+        </blockquote>
+        <h3>Training Instability</h3>
+        
+        <h4>Explicación Técnica</h4>
+        <p>La inestabilidad del entrenamiento se manifiesta como oscilaciones, divergencia, o comportamiento caótico durante la optimización.</p>
+        
+        <p><strong>Causas:</strong></p>
+        
+        <p>La <strong>naturaleza del juego minimax</strong> hace que a diferencia de la optimización estándar (encontrar un mínimo), estamos buscando un punto de silla donde G minimiza y D maximiza. Los algoritmos de gradiente estándar no garantizan convergencia a puntos de silla. El <strong>acoplamiento dinámico</strong> significa que los parámetros óptimos de D dependen de G y viceversa. Actualizar uno cambia el objetivo del otro, creando un "objetivo móvil". Los <strong>gradientes no estacionarios</strong> implican que el gradiente calculado para G asume un D fijo, pero D cambiará en el siguiente paso, potencialmente invalidando la dirección del gradiente.</p>
+        
+        <p><strong>Indicadores de inestabilidad:</strong></p>
+        
+        <ul>
+            <li>Las pérdidas de G y D oscilan sin tendencia clara</li>
+            <li>La pérdida de D colapsa a 0 (demasiado bueno) o explota</li>
+            <li>Las muestras generadas alternan entre buenas y malas</li>
+        </ul>
+        
+        <p><strong>Soluciones arquitectónicas:</strong></p>
+        
+        <p>El <strong>Two Time-Scale Update Rule (TTUR)</strong> usa diferentes learning rates para G y D. El <strong>Gradient Penalty</strong> (WGAN-GP) estabiliza el entrenamiento penalizando gradientes grandes. La <strong>Spectral Normalization</strong> normaliza pesos para controlar la constante de Lipschitz de D.</p>
+        
+        <blockquote>
+        <p>La inestabilidad es cuando el falsificador y el detective se vuelven locos y ninguno puede aprender apropiadamente.</p>
+        
+        <p>Imagina que cada vez que el falsificador mejora un poco, el detective sobrerreacciona y cambia completamente su estrategia. Luego el falsificador tiene que cambiar completamente la suya. Y así sucesivamente, como dos personas tratando de pasar por una puerta pero moviéndose al mismo lado cada vez.</p>
+        
+        <p>También puede ser como un balancín que oscila salvajemente. Un momento el detective es muy bueno, al siguiente es muy malo, al siguiente es bueno otra vez. Nunca se estabiliza.</p>
+        
+        <p>Las soluciones son como añadir amortiguadores al balancín. TTUR es como hacer que un lado del balancín se mueva más lento que el otro, así no pueden oscilarse mutuamente tan fácilmente. El Gradient Penalty es como poner un límite a qué tan brusco puede ser cualquier movimiento: "puedes cambiar, pero suavemente".</p>
+        
+        <p>Spectral Normalization es como poner reglas sobre qué tan extremo puede ser el detective. Si un día el detective es un genio absoluto y al siguiente es completamente incompetente, eso desestabiliza todo. La normalización lo mantiene consistente.</p>
+        </blockquote>
+        <h2>2.2.3 Monitoreo y Diagnóstico</h2>
+        
+        <h3>Explicación Técnica</h3>
+        <p>El monitoreo efectivo del entrenamiento de GANs requiere múltiples métricas y técnicas cualitativas.</p>
+        
+        <p><strong>Métricas de Pérdida:</strong></p>
+        
+        <p>La pérdida de D debe mantenerse cercana a log(4) ≈ 1.386 en equilibrio. Si \( \mathcal{L}_D \rightarrow 0 \), D está ganando demasiado. Si \( \mathcal{L}_D \rightarrow \infty \), algo está mal numéricamente. La pérdida de G debería decrecer gradualmente o estabilizarse, no oscilar violentamente.</p>
+        
+        <p><strong>Inspección Visual:</strong></p>
+        
+        <p>Se debe revisar periódicamente las muestras generadas durante el entrenamiento. Buscar diversidad (diferentes rostros, poses, etc.), calidad creciente, y ausencia de artefactos.</p>
+        
+        <p><strong>Métricas Cuantitativas:</strong></p>
+        
+        <p>El <strong>Inception Score (IS)</strong> mide la calidad y diversidad de las imágenes generadas usando un modelo preentrenado (Inception):</p>
+        <p>$$IS = \exp(\mathbb{E}_x[D_{KL}(p(y|x) \| p(y))])$$</p>
+        
+        <p>Donde p(y|x) es la distribución de clases predicha para la imagen x, y p(y) es la distribución marginal. Alto IS significa imágenes que se clasifican claramente (calidad) con distribución diversa de clases (diversidad).</p>
+        
+        <p>El <strong>Fréchet Inception Distance (FID)</strong> compara estadísticas de features entre imágenes reales y generadas:</p>
+        <p>$$FID = \|\mu_r - \mu_g\|^2 + \text{Tr}(\Sigma_r + \Sigma_g - 2(\Sigma_r\Sigma_g)^{1/2})$$</p>
+        
+        <p>Donde \( (\mu_r, \Sigma_r) \) y \( (\mu_g, \Sigma_g) \) son la media y covarianza de features de imágenes reales y generadas respectivamente. Menor FID significa mayor similitud con datos reales.</p>
+        
+        <blockquote>
+        <p>Monitorear el entrenamiento de una GAN es como ser el árbitro del partido entre el falsificador y el detective.</p>
+        
+        <p>Las pérdidas son como el marcador del partido. Si el marcador del detective baja mucho (cerca de 0), significa que está ganando demasiado fácilmente. Si el marcador explota hacia infinito, algo se rompió. Idealmente, el marcador debería mantenerse parejo y estable, como un partido reñido.</p>
+        
+        <p>La inspección visual es simplemente mirar los billetes que está produciendo el falsificador. ¿Se ven bien? ¿Son todos diferentes o son copias del mismo? ¿Tienen manchas raras o partes borrosas?</p>
+        
+        <p>El Inception Score es como pedirle a un experto en arte que mire las imágenes generadas y nos diga dos cosas. Primero, ¿cada imagen se ve claramente como algo específico (un perro, un gato, un carro)? Segundo, ¿hay variedad o todas las imágenes son del mismo tipo? Un IS alto significa "imágenes claras y variadas".</p>
+        
+        <p>El FID es como comparar dos álbumes de fotos. Tomas mil fotos del álbum real y mil del álbum generado. Calculas cosas como "el brillo promedio", "los colores más comunes", "cuánto detalle hay en promedio". Si ambos álbumes tienen estadísticas similares, el FID es bajo (bueno). Si son muy diferentes, el FID es alto (malo).</p>
+    </blockquote></section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+</html>
