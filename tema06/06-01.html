@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundamentos Matemáticos Previos</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <div>Fundamentos Matemáticos Previos</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>Introducción</h1>
+        <p>Antes de construir rascacielos, necesitamos entender cómo funcionan los cimientos. Este módulo establece las
+            bases matemáticas que hacen posible que las GANs generen rostros realistas, que los Transformers escriban
+            texto coherente, y que DALL-E convierta palabras en imágenes. Sin estos fundamentos, las arquitecturas
+            avanzadas serían cajas negras incomprensibles.</p>
+    </section>
+
+    <section class="contenido-didactico">
+        <h1>1.1 Distribuciones de Probabilidad y Estimación de Densidad</h1>
+
+        <h2>Explicación Técnica</h2>
+        <p>Una distribución de probabilidad describe cómo se dispersan los valores posibles de una variable aleatoria.
+            Matemáticamente, para una variable continua <strong>X</strong>, la función de densidad de probabilidad (PDF)
+            <strong>p(x)</strong> satisface:
+        </p>
+
+        $$\int_{-\infty}^{\infty} p(x) dx = 1 \quad \text{y} \quad p(x) \geq 0 \quad \forall x$$
+
+        <p>La probabilidad de que <strong>X</strong> caiga en un intervalo [a, b] se calcula como:</p>
+
+        $$P(a \leq X \leq b) = \int_a^b p(x) dx$$
+        <blockquote>
+            <p>Imagina que tienes una bolsa gigante llena de canicas de diferentes colores. Una distribución de
+                probabilidad es como un mapa que te dice qué tan probable es sacar cada color. Si hay muchas canicas
+                rojas, el mapa mostrará "rojo" muy alto. Si hay pocas azules, "azul" estará bajito.</p>
+        </blockquote>
+        <p>La distribución Gaussiana (Normal) es fundamental en deep learning:</p>
+
+        $$p(x|\mu,\sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)$$
+
+        <p>Donde <strong>μ</strong> es la media (centro de la distribución) y <strong>σ²</strong> es la varianza
+            (dispersión).</p>
+
+        <p>Para múltiples variables, la distribución Gaussiana multivariada se expresa como:</p>
+
+        $$p(x|\mu,\Sigma) = \frac{1}{(2\pi)^{d/2}|\Sigma|^{1/2}}
+        \exp\left(-\frac{1}{2}(x-\mu)^T\Sigma^{-1}(x-\mu)\right)$$
+
+        <p>Donde <strong>Σ</strong> es la matriz de covarianza que captura las relaciones entre variables.</p>
+        <blockquote>
+            <p>La distribución Gaussiana es como cuando lanzas muchos dardos a una diana. La mayoría caerán cerca del
+                centro (eso es la media, <strong>μ</strong>), algunos caerán un poco más lejos, y muy poquitos caerán en
+                los bordes. La varianza (<strong>σ²</strong>) te dice si eres muy bueno lanzando dardos (todos cerquita
+                del centro) o si a veces se te van muy lejos.</p>
+        </blockquote>
+        <p>La <strong>estimación de densidad</strong> busca aproximar la distribución verdadera
+            <strong>p_data(x)</strong> a partir de muestras observadas. Los modelos generativos aprenden una
+            distribución <strong>p_model(x)</strong> que idealmente coincide con <strong>p_data(x)</strong>.
+        </p>
+
+        <blockquote>
+            <p>Cuando las GANs aprenden a generar caras, están aprendiendo el "mapa" de cómo se ven las caras reales.
+                Estudian miles de fotos hasta entender cosas como "los ojos suelen estar a esta altura" o "las narices
+                suelen tener este tamaño". Están aprendiendo la distribución de las caras humanas.</p>
+        </blockquote>
+    </section>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+
+</html>

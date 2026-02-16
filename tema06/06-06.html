@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundamentos Matemáticos Previos</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <div>Fundamentos Matemáticos Previos</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>1.6 Funciones de Activación</h1>
+
+        <h2>Explicación Técnica</h2>
+        <p>Las funciones de activación introducen no-linealidad en las redes neuronales, permitiéndoles aprender
+            funciones complejas. Sin ellas, cualquier red profunda sería equivalente a una sola capa lineal.</p>
+        <blockquote>
+            <p>Las funciones de activación son como las reglas de un juego que decide qué señales pasan y cuáles no.</p>
+        </blockquote>
+        <h3>Sigmoid:</h3>
+        $$\sigma(x) = \frac{1}{1+e^{-x}}$$
+        <p>Rango: (0, 1). Útil para probabilidades. Su derivada es <strong>σ'(x) = σ(x)(1-σ(x))</strong>. Problema:
+            saturación en extremos causa vanishing gradients.</p>
+        <blockquote>
+            <p><strong>Sigmoid</strong> es como un volumen que solo va de 0 a 1. No importa cuánto grites (entrada muy
+                grande) o susurres (entrada muy negativa), el volumen siempre queda entre "silencio total" (0) y "máximo
+                volumen" (1). Es útil cuando necesitas una respuesta tipo "¿qué tan probable es esto?".</p>
+        </blockquote>
+        <h3>Tanh:</h3>
+        $$\tanh(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}} = 2\sigma(2x) - 1$$
+        <p>Rango: (-1, 1). Centrada en cero (mejor que sigmoid para capas ocultas). Aún sufre de vanishing gradients en
+            saturación.</p>
+
+        <h3>ReLU (Rectified Linear Unit):</h3>
+        $$\text{ReLU}(x) = \max(0, x)$$
+        <p>Derivada: 1 si x > 0, 0 si x < 0 (indefinida en 0, típicamente se usa 0). Ventajas: computacionalmente
+                eficiente, no satura para valores positivos. Problema: "neuronas muertas" (si x < 0 siempre, el
+                gradiente es siempre 0).</p>
+                <blockquote>
+                    <p><strong>ReLU</strong> es como una puerta que solo deja pasar las cosas buenas. Si la señal es
+                        positiva (buenas noticias), pasa tal cual. Si es negativa (malas noticias), la puerta la bloquea
+                        completamente y sale un cero. Es muy simple y muy rápida, por eso es la más popular.</p>
+                </blockquote>
+                <h3>Leaky ReLU:</h3>
+                $$\text{LeakyReLU}(x) = \max(\alpha x, x)$$
+                <p>Típicamente <strong>α = 0.01</strong>. Resuelve el problema de neuronas muertas.</p>
+                <blockquote>
+                    <p>El problema con ReLU es que a veces una neurona queda "atascada" en el lado negativo y nunca más
+                        deja pasar nada. Es como si la puerta se trabara cerrada para siempre. <strong>Leaky
+                            ReLU</strong> resuelve esto dejando pasar un poquitito de las señales negativas (solo el
+                        1%), así la puerta nunca se traba completamente.</p>
+                </blockquote>
+                <h3>GELU (Gaussian Error Linear Unit):</h3>
+                $$\text{GELU}(x) = x \cdot \Phi(x) \approx 0.5x\left(1 + \tanh\left[\sqrt{\frac{2}{\pi}}\left(x +
+                0.044715x^3\right)\right]\right)$$
+                <p>Donde <strong>Φ</strong> es la CDF de la distribución normal estándar. Es la activación estándar en
+                    Transformers modernos. Proporciona una transición suave que puede interpretarse como una "puerta"
+                    probabilística.</p>
+                <blockquote>
+                    <p><strong>GELU</strong> es más sofisticada. En lugar de decidir bruscamente "pasa" o "no pasa",
+                        hace una transición suave. Es como una puerta que se abre gradualmente: para señales muy
+                        negativas está casi cerrada, para señales muy positivas está completamente abierta, y para
+                        señales cercanas a cero está parcialmente abierta. Los Transformers usan GELU porque les ayuda a
+                        aprender mejor.</p>
+                </blockquote>
+                <h3>Softmax:</h3>
+                $$\text{softmax}(x_i) = \frac{e^{x_i}}{\sum_j e^{x_j}}$$
+                <p>Convierte un vector de scores en una distribución de probabilidad (suma = 1, todos positivos).
+                    Fundamental en clasificación multiclase y en attention.</p>
+
+                <blockquote>
+                    <p><strong>Softmax</strong> es como una votación para elegir un ganador. Tienes varios candidatos
+                        con diferentes puntuaciones. Softmax convierte esas puntuaciones en porcentajes que suman 100%.
+                        El candidato con mayor puntuación no gana todo, pero sí recibe el mayor porcentaje. Así es como
+                        los modelos eligen entre "esto es un gato", "esto es un perro", "esto es un pájaro".</p>
+                </blockquote>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+
+</html>

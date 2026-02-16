@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundamentos Matemáticos Previos</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <div>Fundamentos Matemáticos Previos</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>1.2 Funciones de Pérdida</h1>
+
+        <h2>Explicación Técnica</h2>
+        <p>Una función de pérdida (loss function) cuantifica la discrepancia entre las predicciones del modelo y los
+            valores reales. El objetivo del entrenamiento es minimizar esta función.</p>
+        <blockquote>
+            <p>Imagina que estás aprendiendo a dibujar gatos. Cada vez que terminas un dibujo, tu profesor lo compara
+                con una foto de un gato real. La función de pérdida es como la "calificación al revés": mientras peor
+                sea tu dibujo, más alto es el número.</p>
+        </blockquote>
+        <h3>Error Cuadrático Medio (MSE):</h3>
+        $$L_{MSE} = \frac{1}{n}\sum_{i=1}^n (y_i - \hat{y}_i)^2$$
+        <p>Penaliza errores grandes cuadráticamente, haciéndolo sensible a outliers.</p>
+        <blockquote>
+            <p>El <strong>MSE</strong> es como medir con una regla cuántos centímetros se alejó cada parte de tu dibujo.
+                Si dibujaste la oreja 2 centímetros más arriba, eso cuenta. Pero aquí hay un truco: si te equivocas
+                mucho en algo (digamos 10 centímetros), ¡te castigan muchísimo más! Por eso los errores grandes son muy
+                importantes de corregir.</p>
+        </blockquote>
+        <h3>Entropía Cruzada Binaria (BCE):</h3>
+        <p>Para clasificación binaria donde <strong>y ∈ {0,1}</strong> y <strong>ŷ ∈ [0,1]</strong>:</p>
+        $$L_{BCE} = -\frac{1}{n}\sum_{i=1}^n \left[y_i \log(\hat{y}_i) + (1-y_i)\log(1-\hat{y}_i)\right]$$
+        <p>Esta es la pérdida utilizada en el discriminador de las GANs.</p>
+
+        <h3>Entropía Cruzada Categórica:</h3>
+        <p>Para clasificación multiclase con <strong>K</strong> clases:</p>
+        $$L_{CE} = -\sum_{i=1}^n \sum_{k=1}^K y_{i,k} \log(\hat{y}_{i,k})$$
+        <p>Donde <strong>y_{i,k}</strong> es 1 si la muestra i pertenece a la clase k, y 0 en caso contrario.</p>
+        <blockquote>
+            <p>La <strong>entropía cruzada</strong> es diferente. Es como un juego de "sí o no". Si tu modelo dice
+                "¡esto es un gato, estoy 99% seguro!" y resulta que sí era un gato, casi no pierdes puntos. Pero si dice
+                "¡estoy 99% seguro de que es un gato!" y resulta que era un perro, pierdes muchísimos puntos. Te castiga
+                por estar muy seguro y equivocarte.</p>
+        </blockquote>
+        <h3>Divergencia Kullback-Leibler (KL):</h3>
+        <p>Mide cuánto difiere una distribución <strong>Q</strong> de una distribución de referencia <strong>P</strong>:
+        </p>
+        $$L_{CE} = -\sum_{i=1}^n \sum_{k=1}^K y_{i,k} \log(\hat{y}_{i,k})$$
+        <p>O en forma continua:</p>
+        $$D_{KL}(P||Q) = \int p(x)\log\left(\frac{p(x)}{q(x)}\right) dx$$
+        <p>Propiedades importantes: <strong>D_KL ≥ 0</strong> siempre, <strong>D_KL = 0</strong> solo si P = Q, y no es
+            simétrica (<strong>D_KL(P||Q) ≠ D_KL(Q||P)</strong>).</p>
+
+        <blockquote>
+            <p>La <strong>divergencia KL</strong> es como comparar dos bolsas de dulces. Una bolsa es la "perfecta" (la
+                distribución real) y la otra es la tuya (lo que tu modelo predice). La divergencia KL te dice qué tan
+                diferente es tu bolsa de la perfecta. Si ambas tienen los mismos dulces en las mismas cantidades, la
+                divergencia es cero. Si son muy diferentes, el número será grande.</p>
+        </blockquote>
+    </section>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+
+</html>

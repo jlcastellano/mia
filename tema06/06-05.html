@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundamentos Matemáticos Previos</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <div>Fundamentos Matemáticos Previos</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>1.5 Teoría de la Información</h1>
+
+        <h2>Explicación Técnica</h2>
+
+        <h3>Entropía:</h3>
+        <p>La entropía mide la incertidumbre o cantidad de información en una distribución de probabilidad:</p>
+        $$H(X) = -\sum_x p(x)\log p(x) = E[-\log p(X)]$$
+
+        <p>Para distribuciones continuas:</p>
+        $$H(X) = -\int p(x)\log p(x) \, dx$$
+
+        <p>Propiedades importantes: la entropía es máxima cuando todos los eventos son equiprobables, es mínima (cero)
+            cuando un evento tiene probabilidad 1, y es siempre no negativa para distribuciones discretas.</p>
+
+        <ul>
+            <li>Para una distribución uniforme sobre n eventos: <strong>H = log n</strong></li>
+            <li>Para una Gaussiana univariada: <strong>H = (1/2)log(2πeσ²)</strong></li>
+        </ul>
+        <blockquote>
+            <p>Imagina que juegas a las adivinanzas. Tu amigo piensa en algo y tú tienes que adivinar haciendo preguntas
+                de sí o no. La <strong>entropía</strong> te dice cuántas preguntas necesitarás en promedio.</p>
+
+            <p>Si tu amigo puede pensar en cualquier cosa del universo, necesitarás muchísimas preguntas (entropía
+                alta). Pero si sabes que solo puede pensar en "perro" o "gato", con una sola pregunta basta: "¿es un
+                perro?" (entropía baja).</p>
+
+            <p>Cuando algo es completamente predecible (tu amigo SIEMPRE piensa en "perro"), la entropía es cero. No
+                necesitas preguntar nada porque ya sabes la respuesta.</p>
+        </blockquote>
+        <h3>Entropía Cruzada:</h3>
+        <p>Mide el número esperado de bits necesarios para codificar datos de la distribución <strong>P</strong> usando
+            un código óptimo para <strong>Q</strong>:</p>
+        $$H(P,Q) = -\sum_x P(x)\log Q(x)$$
+        <p>En machine learning, <strong>P</strong> es la distribución real (etiquetas) y <strong>Q</strong> es la
+            distribución predicha (salida del modelo).</p>
+        <blockquote>
+            <p>La <strong>entropía cruzada</strong> es como cuando usas una estrategia de preguntas equivocada. Imagina
+                que tu amigo puede pensar en animales de la granja (vaca, gallina, cerdo, caballo), pero tú crees que
+                puede pensar en cualquier animal del mundo. Harás muchas preguntas innecesarias sobre leones, elefantes
+                y jirafas. Esas preguntas extra desperdiciadas son la diferencia entre la entropía normal y la entropía
+                cruzada.</p>
+        </blockquote>
+        <h3>Relación con Divergencia KL:</h3>
+        $$H(P,Q) = H(P) + D_{KL}(P||Q)$$
+        <p>Como <strong>H(P)</strong> es constante durante el entrenamiento, minimizar la entropía cruzada equivale a
+            minimizar la divergencia KL.</p>
+        <blockquote>
+            <p>La <strong>divergencia KL</strong> mide exactamente qué tan equivocada está tu estrategia. Si tu
+                estrategia es perfecta (conoces exactamente en qué puede pensar tu amigo), KL es cero. Si estás muy
+                equivocado, KL será grande.</p>
+        </blockquote>
+        <h3>Información Mutua:</h3>
+        <p>Mide cuánta información comparten dos variables:</p>
+        $$I(X;Y) = H(X) + H(Y) - H(X,Y) = D_{KL}(P(X,Y)||P(X)P(Y))$$
+        <p>Si <strong>X</strong> e <strong>Y</strong> son independientes, <strong>I(X;Y) = 0</strong>. Se usa para medir
+            la calidad de representaciones aprendidas.</p>
+        <blockquote>
+            <p>La <strong>información mutua</strong> es como medir qué tanto te ayuda saber una cosa para adivinar otra.
+                Si te digo que está lloviendo, ¿te ayuda a adivinar si llevaré paraguas? ¡Sí, mucho! Eso significa que
+                "lluvia" y "paraguas" tienen alta información mutua. Pero si te digo mi color favorito, probablemente no
+                te ayude a adivinar si llevaré paraguas. Baja información mutua.</p>
+        </blockquote>
+        <h3>Aplicación en Modelos Generativos:</h3>
+        <p>Las GANs implícitamente minimizan una divergencia entre <strong>p_data</strong> y <strong>p_model</strong>.
+            Los VAEs explícitamente usan la divergencia KL como término de regularización:</p>
+        $$L_{VAE} = E_{q(z|x)}[\log p(x|z)] - D_{KL}(q(z|x)||p(z))$$
+        <p>El primer término es reconstrucción y el segundo empuja la distribución latente hacia una prior (típicamente
+            Gaussiana estándar).</p>
+
+        <blockquote>
+            <p>En las GANs, toda esta teoría está trabajando detrás de escenas. El generador está tratando de hacer que
+                su distribución de imágenes falsas sea idéntica a la distribución de imágenes reales. La divergencia KL
+                (o divergencias similares) es la "distancia" entre estas distribuciones que el entrenamiento intenta
+                reducir a cero.</p>
+        </blockquote>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+
+</html>

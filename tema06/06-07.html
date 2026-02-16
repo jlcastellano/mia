@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundamentos Matemáticos Previos</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <div>Fundamentos Matemáticos Previos</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>1.7 Intuición Geométrica del Aprendizaje</h1>
+
+        <h2>Explicación Técnica</h2>
+        <p>El aprendizaje profundo puede entenderse como una serie de transformaciones geométricas del espacio de datos.
+        </p>
+
+        <h3>Espacios de Alta Dimensión:</h3>
+        <p>Los datos reales viven en espacios de muy alta dimensión. Una imagen de 256×256 RGB tiene 196,608
+            dimensiones. Sin embargo, los datos reales típicamente se concentran en una variedad (manifold) de dimensión
+            mucho menor embebida en este espacio.</p>
+
+        <h3>La Hipótesis del Manifold:</h3>
+        <p>Los datos del mundo real (imágenes, texto, audio) ocupan una pequeña fracción del espacio posible,
+            concentrándose cerca de un manifold de baja dimensión. El aprendizaje busca descubrir y aprovechar esta
+            estructura.</p>
+
+        <h3>Transformaciones de Capas:</h3>
+        <p>Cada capa de una red neuronal aplica una transformación afín <strong>(Wx + b)</strong> seguida de una
+            no-linealidad. Esto equivale a rotar, escalar y trasladar el espacio, luego "doblarlo" con la activación.
+            Capas sucesivas pueden "desenredar" datos complicados hasta hacerlos linealmente separables.</p>
+        <blockquote>
+            <p>Imagina que tienes una hoja de papel con muchos puntos de colores: rojos a la izquierda, azules a la
+                derecha, pero todos mezclados en el medio sin una línea clara que los separe. Imposible trazar una línea
+                recta que separe todos los rojos de todos los azules.</p>
+
+            <p>Ahora imagina que puedes doblar, estirar y retorcer esa hoja de papel como si fuera de plastilina.
+                Después de suficientes dobleces mágicos, ¡todos los puntos rojos quedan arriba y todos los azules abajo!
+                Ahora sí puedes trazar una línea que los separe.</p>
+
+            <p>Eso es exactamente lo que hace una red neuronal profunda. Cada capa es como un "doblez" o "estiramiento"
+                del espacio. Los datos que empezaron todos mezclados terminan organizados de forma que es fácil
+                clasificarlos.</p>
+        </blockquote>
+        <h3>El Espacio Latente:</h3>
+        <p>Los modelos generativos aprenden a mapear entre un espacio latente simple (típicamente Gaussiano) y el
+            espacio de datos complejo. El generador de una GAN transforma ruido aleatorio <strong>z ~ N(0, I)</strong>
+            en puntos sobre el manifold de datos.</p>
+        <blockquote>
+            <p>El <strong>espacio latente</strong> es como un control remoto mágico para crear cosas. Imagina que tienes
+                dos perillas: una controla qué tan feliz es una cara, otra controla qué tan vieja. Si mueves las
+                perillas, puedes crear cualquier combinación: joven y feliz, viejo y triste, o cualquier cosa
+                intermedia. La GAN aprende estas "perillas secretas" que controlan las caras. El espacio latente es
+                donde viven todas las combinaciones posibles de perillas.</p>
+        </blockquote>
+        <h3>Interpolación en el Espacio Latente:</h3>
+        <p>Una propiedad fascinante de buenos espacios latentes es que interpolar entre dos puntos produce transiciones
+            semánticas suaves. Si <strong>z₁</strong> codifica un rostro sonriente y <strong>z₂</strong> un rostro
+            serio, los puntos intermedios mostrarán expresiones graduales entre ambos.</p>
+
+        <blockquote>
+            <p>Cuando interpolas en el espacio latente, es como mover las perillas suavemente de una posición a otra. Si
+                empiezas con "perro" y terminas en "gato", los puntos intermedios podrían mostrar una criatura que
+                gradualmente cambia de perro a gato, pasando por algo que tiene características de ambos. Es casi
+                mágico, pero es pura matemática.</p>
+        </blockquote>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

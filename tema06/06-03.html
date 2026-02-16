@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundamentos Matemáticos Previos</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <div>Fundamentos Matemáticos Previos</div>
+    </header>
+
+
+    <section class="contenido-didactico">
+        <h1>1.3 Optimización mediante Gradiente Descendente</h1>
+
+        <h2>Explicación Técnica</h2>
+        <p>El gradiente descendente es el algoritmo fundamental para entrenar redes neuronales. Dado un conjunto de
+            parámetros <strong>θ</strong> y una función de pérdida <strong>L(θ)</strong>, el objetivo es encontrar:</p>
+
+        $$\theta^* = argmin_{\theta} L(\theta)$$
+
+        <p>El gradiente <strong>∇_θ L</strong> apunta en la dirección de máximo crecimiento de la función. Para
+            minimizar, nos movemos en dirección opuesta:</p>
+
+        $$\theta_{t+1} = \theta_t - \eta\nabla_{\theta} L(\theta_t)$$
+
+        <p>Donde <strong>η</strong> es la tasa de aprendizaje (learning rate).</p>
+        <blockquote>
+            <p>Imagina que estás en una montaña con los ojos vendados y quieres llegar al punto más bajo del valle.
+                ¿Cómo lo harías? Simple: con cada paso, sientes con tu pie en qué dirección el suelo baja más, y caminas
+                hacia allá. Eso es exactamente el gradiente descendente.</p>
+
+            <p>El <strong>gradiente</strong> es como tu "sentido de la inclinación". Te dice hacia dónde está la bajada
+                más pronunciada. El <strong>learning rate (η)</strong> es el tamaño de tus pasos. Si das pasos muy
+                grandes, podrías saltar sobre el valle y terminar en otra montaña. Si son muy pequeños, tardarás una
+                eternidad en llegar.</p>
+        </blockquote>
+        <h3>Variantes del Gradiente Descendente:</h3>
+
+        <p>El <strong>Batch Gradient Descent</strong> usa todo el dataset para calcular el gradiente:</p>
+        $$\nabla_{\theta} L = \frac{1}{N}\sum_{i=1}^N \nabla_{\theta} L_i(\theta)$$
+        <p>Es preciso pero computacionalmente costoso para datasets grandes.</p>
+
+        <p>El <strong>Stochastic Gradient Descent (SGD)</strong> usa una sola muestra por actualización:</p>
+        $$\theta_{t+1} = \theta_t - \eta\nabla_{\theta} L_i(\theta_t)$$
+        <p>Introduce ruido que puede ayudar a escapar de mínimos locales, pero las actualizaciones son ruidosas.</p>
+        <blockquote>
+            <p>El <strong>SGD</strong> es como si en vez de revisar todo el terreno antes de cada paso, solo sintieras
+                un puntito pequeño del suelo y decidieras basándote en eso. A veces te equivocas un poco, pero es mucho
+                más rápido.</p>
+        </blockquote>
+        <p>El <strong>Mini-batch Gradient Descent</strong> es el compromiso práctico, usando un subconjunto de
+            <strong>m</strong> muestras:</p>
+        $$\theta_{t+1} = \theta_t - \eta\frac{1}{m}\sum_{i=1}^m \nabla_{\theta} L_i(\theta_t)$$
+
+        <h3>Optimizadores Avanzados:</h3>
+
+        <p><strong>Momentum</strong> acumula velocidad en direcciones consistentes:</p>
+        $$v_{t+1} = \beta v_t + \nabla_{\theta} L(\theta_t)$$
+        $$\theta_{t+1} = \theta_t - \eta v_{t+1}$$
+        <p>Donde <strong>β</strong> típicamente es 0.9.</p>
+        <blockquote>
+            <p>El <strong>Momentum</strong> es como si fueras en una patineta. Cuando empiezas a bajar, acumulas
+                velocidad. Si el camino sigue bajando, vas cada vez más rápido. Si hay un pequeño bache hacia arriba, tu
+                velocidad te ayuda a pasarlo sin detenerte. El parámetro <strong>β</strong> es qué tanto "recuerdas" tu
+                velocidad anterior.</p>
+        </blockquote>
+        <p><strong>Adam (Adaptive Moment Estimation)</strong> combina momentum con tasas de aprendizaje adaptativas:</p>
+        $$m_t = \beta_1 m_{t-1} + (1-\beta_1)\nabla_{\theta} L$$
+        $$v_t = \beta_2 v_{t-1} + (1-\beta_2)(\nabla_{\theta} L)^2$$
+        $$\hat{m}_t = \frac{m_t}{1-\beta_1^t}, \quad \hat{v}_t = \frac{v_t}{1-\beta_2^t}$$
+        $$\theta_{t+1} = \theta_t - \eta\frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}$$
+        <p>Los valores típicos son <strong>β₁ = 0.9</strong>, <strong>β₂ = 0.999</strong>, <strong>ε = 10⁻⁸</strong>.
+        </p>
+        <blockquote>
+            <p><strong>Adam</strong> es como tener un GPS inteligente en tu patineta. No solo recuerda tu velocidad,
+                sino que también aprende que en algunas direcciones conviene ir más lento y en otras más rápido. En
+                terrenos planos da pasos más grandes para avanzar rápido, y en terrenos muy inclinados da pasos más
+                pequeños para no perder el control.</p>
+        </blockquote>
+        <p><strong>Backpropagation</strong> permite calcular gradientes eficientemente mediante la regla de la cadena.
+            Para una composición de funciones <strong>f = f_n ∘ f_{n-1} ∘ ... ∘ f_1</strong>:</p>
+        $$\frac{\partial L}{\partial \theta_k} = \frac{\partial L}{\partial f_n} \cdot \frac{\partial f_n}{\partial
+        f_{n-1}} \cdot \ldots \cdot \frac{\partial f_{k+1}}{\partial f_k} \cdot \frac{\partial f_k}{\partial \theta_k}$$
+
+        <blockquote>
+            <p><strong>Backpropagation</strong> es cómo la red neuronal descubre qué partes causaron el error. Es como
+                cuando pierdes un partido de fútbol y analizas: "el gol llegó porque el portero no atrapó, pero no
+                atrapó porque el defensa no bloqueó, pero no bloqueó porque recibió mal la indicación..." Vas hacia
+                atrás encontrando qué causó qué, y eso te dice qué mejorar.</p>
+        </blockquote>
+    </section>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+
+</html>

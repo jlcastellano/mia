@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundamentos Matemáticos Previos</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <div>Fundamentos Matemáticos Previos</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>1.4 Álgebra Lineal Aplicada</h1>
+
+        <h2>Explicación Técnica</h2>
+
+        <h3>Tensores y Operaciones Básicas:</h3>
+        <p>Un <strong>tensor</strong> es una generalización de vectores y matrices a dimensiones arbitrarias. Un escalar
+            es un tensor de rango 0, un vector es de rango 1, una matriz es de rango 2, y así sucesivamente.</p>
+
+        <p>En deep learning, trabajamos constantemente con tensores. Una imagen RGB de 224×224 píxeles es un tensor de
+            forma <strong>(3, 224, 224)</strong>. Un batch de 32 imágenes sería <strong>(32, 3, 224, 224)</strong>.</p>
+        <blockquote>
+            <p>Los <strong>tensores</strong> son como cajas dentro de cajas. Un número solo (como "5") es la caja más
+                simple. Un vector es como una fila de números en una caja: [1, 2, 3, 4]. Una matriz es como una tabla
+                con filas y columnas, como un tablero de ajedrez con números en cada casilla. Un tensor de 3 dimensiones
+                sería como tener varios tableros de ajedrez apilados, como un cubo de Rubik donde cada cuadrito tiene un
+                número.</p>
+
+            <p>Una imagen en la computadora es exactamente así: tres tableros apilados (uno para rojo, uno para verde,
+                uno para azul), y cada casilla dice qué tan intenso es ese color en ese pixel.</p>
+        </blockquote>
+        <h3>Multiplicación de Matrices:</h3>
+        <p>Para matrices <strong>A</strong> de dimensión (m × n) y <strong>B</strong> de dimensión (n × p), el producto
+            <strong>C = AB</strong> tiene dimensión (m × p):
+        </p>
+        $$C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}$$
+
+        <p>Esta operación es el corazón de las capas fully connected:</p>
+        $$y = Wx + b$$
+        <p>Donde <strong>W</strong> es la matriz de pesos, <strong>x</strong> es el input, y <strong>b</strong> es el
+            sesgo.</p>
+        <blockquote>
+            <p>La <strong>multiplicación de matrices</strong> es como una máquina mezcladora. Metes números por un lado,
+                la máquina los combina de formas específicas siguiendo las reglas de la matriz, y salen números
+                transformados por el otro lado. Las redes neuronales son básicamente muchas de estas máquinas
+                mezcladoras conectadas una tras otra.</p>
+        </blockquote>
+        <h3>Producto Punto (Dot Product):</h3>
+        <p>Para vectores <strong>a</strong> y <strong>b</strong> de dimensión n:</p>
+        $$a \cdot b = \sum_{i=1}^n a_i b_i = ||a|| \, ||b|| \cos(\theta)$$
+        <p>Donde <strong>θ</strong> es el ángulo entre los vectores. Este producto mide similitud direccional y es
+            fundamental en los mecanismos de atención.</p>
+        <blockquote>
+            <p>El <strong>producto punto</strong> te dice qué tan "de acuerdo" están dos flechas (vectores). Si las dos
+                flechas apuntan exactamente en la misma dirección, el producto punto es grande y positivo. Si apuntan en
+                direcciones opuestas, es grande pero negativo. Si son perpendiculares (una apunta hacia arriba y otra
+                hacia el lado), el producto punto es cero.</p>
+            <p>En los Transformers, cuando el modelo lee una oración, usa el producto punto para preguntar "¿qué tan
+                relacionada está esta palabra con aquella palabra?". Si "gato" y "felino" apuntan en direcciones
+                similares en el espacio de significados, su producto punto será alto, y el modelo sabrá que están
+                relacionadas.</p>
+        </blockquote>
+        <h3>Normas Vectoriales:</h3>
+        <p>La <strong>norma L2</strong> (Euclidiana):</p>
+        $$||x||_2 = \sqrt{\sum_{i=1}^n x_i^2}$$
+
+        <p>La <strong>norma L1</strong> (Manhattan):</p>
+        $$||x||_1 = \sum_{i=1}^n |x_i|$$
+
+        <p>Se usan para regularización. <strong>L1</strong> induce sparsity (muchos pesos exactamente cero), mientras
+            que <strong>L2</strong> distribuye los pesos más uniformemente.</p>
+        <blockquote>
+            <p>Las <strong>normas</strong> son como medir el tamaño de una flecha. La norma L2 usa el teorema de
+                Pitágoras (la regla del triángulo que aprendiste en la escuela). La norma L1 es como si caminaras por
+                las calles de una ciudad: solo puedes ir hacia arriba/abajo o izquierda/derecha, nunca en diagonal.</p>
+        </blockquote>
+        <h3>Eigenvalores y Eigenvectores:</h3>
+        <p>Para una matriz cuadrada <strong>A</strong>, un eigenvector <strong>v</strong> y su eigenvalor
+            <strong>λ</strong> satisfacen:
+        </p>
+        $$Av = \lambda v$$
+        <p>Los eigenvectores representan direcciones que la transformación solo escala (no rota). Esto es crucial en PCA
+            (reducción de dimensionalidad) y análisis de estabilidad del entrenamiento.</p>
+        <blockquote>
+            <p>Los <strong>eigenvalores y eigenvectores</strong> son como encontrar las direcciones "especiales" de una
+                transformación. Imagina que tienes una gelatina y la estiras. La mayoría de los puntos se mueven de
+                forma complicada, pero hay algunas direcciones donde los puntos solo se alejan o acercan en línea recta,
+                sin girar. Esas direcciones especiales son los eigenvectores, y cuánto se estiran es el eigenvalor.</p>
+        </blockquote>
+        <h3>Descomposición en Valores Singulares (SVD):</h3>
+        <p>Cualquier matriz <strong>A</strong> puede descomponerse como:</p>
+        $$A = U\Sigma V^T$$
+        <p>Donde <strong>U</strong> y <strong>V</strong> son matrices ortogonales y <strong>Σ</strong> es diagonal con
+            los valores singulares. SVD se usa para compresión de modelos y técnicas como LoRA.</p>
+
+        <h3>Broadcasting:</h3>
+        <p>Es la extensión automática de dimensiones para operaciones entre tensores de diferentes formas. Por ejemplo,
+            sumar un vector <strong>(n,)</strong> a una matriz <strong>(m, n)</strong> replica el vector m veces.</p>
+
+
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+
+</html>
