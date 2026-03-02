@@ -120,7 +120,7 @@ transform = transforms.Compose([
 ])
 
 dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0)
 
 # Vector de ruido fijo para visualización
 fixed_noise = torch.randn(64, latent_dim, device=device)
@@ -306,7 +306,7 @@ transform = transforms.Compose([
 ])
 
 dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0)
 
 fixed_noise = torch.randn(64, latent_dim, 1, 1, device=device)
 

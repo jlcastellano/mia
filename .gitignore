@@ -24,3 +24,12 @@ tema07/data/MNIST/raw/train-images-idx3-ubyte
 tema07/data/MNIST/raw/train-images-idx3-ubyte.gz
 tema07/data/MNIST/raw/train-labels-idx1-ubyte
 tema07/data/MNIST/raw/train-labels-idx1-ubyte.gz
+data/MNIST/raw/t10k-images-idx3-ubyte
+data/MNIST/raw/t10k-images-idx3-ubyte.gz
+data/MNIST/raw/t10k-labels-idx1-ubyte
+data/MNIST/raw/t10k-labels-idx1-ubyte.gz
+data/MNIST/raw/train-images-idx3-ubyte
+data/MNIST/raw/train-images-idx3-ubyte.gz
+data/MNIST/raw/train-labels-idx1-ubyte
+data/MNIST/raw/train-labels-idx1-ubyte.gz
+tema07/gans.py
