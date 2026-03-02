@@ -16,3 +16,11 @@ tema04/old/04-02.html
 tema04/old/04-03.html
 tema04/old/04-04.html
 tema05/Inteligencia_Artificial_El_Mapa_Integral.pdf
+tema07/data/MNIST/raw/t10k-images-idx3-ubyte
+tema07/data/MNIST/raw/t10k-images-idx3-ubyte.gz
+tema07/data/MNIST/raw/t10k-labels-idx1-ubyte
+tema07/data/MNIST/raw/t10k-labels-idx1-ubyte.gz
+tema07/data/MNIST/raw/train-images-idx3-ubyte
+tema07/data/MNIST/raw/train-images-idx3-ubyte.gz
+tema07/data/MNIST/raw/train-labels-idx1-ubyte
+tema07/data/MNIST/raw/train-labels-idx1-ubyte.gz
