@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redes Transformers - Guía Comprensible</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>Redes Transformers - Guía Comprensible</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>4. Entrenamiento del Transformer</h1>
+        
+        <h2>4.1 El Proceso de Entrenamiento</h2>
+        
+        <div class="nota-importante">
+            <p><strong>🎓 Analogía: Enseñar a un Estudiante a Traducir</strong></p>
+            
+            <p><strong>Fase 1: Mostrar ejemplos</strong><br>
+            Le das al estudiante miles de pares de oraciones:</p>
+            <pre><code class="language-plaintext">"Hello" → "Hola"
+"Good morning" → "Buenos días"
+"How are you?" → "¿Cómo estás?"</code></pre>
+            
+            <p><strong>Fase 2: Práctica con pistas</strong><br>
+            El estudiante intenta traducir, pero le das pistas:</p>
+            <pre><code class="language-plaintext">Entrada: "The cat sleeps"
+Pistas ya dadas: "El gato"
+Estudiante debe predecir: "duerme"</code></pre>
+            
+            <p><strong>Fase 3: Corrección</strong><br>
+            Si el estudiante dice "come" en lugar de "duerme", le corriges y él ajusta su comprensión.</p>
+            
+            <p>Este ciclo se repite millones de veces hasta que aprende.</p>
+        </div>
+        
+        <h2>4.2 Código de Entrenamiento Completo</h2>
+        
+        <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
+
+# === DATASET ===
+class TranslationDataset(Dataset):
+    """
+    Dataset simple para traducción.
+    En la práctica, usarías datasets como Multi30k o WMT.
+    """
+    def __init__(self, pairs, src_vocab, tgt_vocab, max_len=50):
+        """
+        pairs: Lista de tuplas (inglés, español)
+        src_vocab: Diccionario {palabra: id} para inglés
+        tgt_vocab: Diccionario {palabra: id} para español
+        """
+        self.pairs = pairs
+        self.src_vocab = src_vocab
+        self.tgt_vocab = tgt_vocab
+        self.max_len = max_len
+    
+    def text_to_ids(self, text, vocab):
+        """Convertir texto a lista de IDs"""
+        words = text.lower().split()
+        ids = [vocab.get(word, vocab['&lt;UNK&gt;']) for word in words]
+        # Añadir tokens especiales
+        ids = [vocab['&lt;SOS&gt;']] + ids + [vocab['&lt;EOS&gt;']]
+        # Padding
+        if len(ids) &lt; self.max_len:
+            ids = ids + [vocab['&lt;PAD&gt;']] * (self.max_len - len(ids))
+        else:
+            ids = ids[:self.max_len]
+        return ids
+    
+    def __len__(self):
+        return len(self.pairs)
+    
+    def __getitem__(self, idx):
+        src_text, tgt_text = self.pairs[idx]
+        
+        src_ids = self.text_to_ids(src_text, self.src_vocab)
+        tgt_ids = self.text_to_ids(tgt_text, self.tgt_vocab)
+        
+        return torch.tensor(src_ids), torch.tensor(tgt_ids)
+
+
+# === FUNCIONES DE ENTRENAMIENTO ===
+
+def train_step(model, src, tgt, optimizer, criterion, device):
+    """Un paso de entrenamiento"""
+    model.train()
+    
+    src = src.to(device)
+    tgt = tgt.to(device)
+    
+    # El decoder input es todo excepto la última palabra
+    tgt_input = tgt[:, :-1]
+    # Los labels son todo excepto la primera palabra (desplazado)
+    tgt_labels = tgt[:, 1:]
+    
+    # Forward pass
+    optimizer.zero_grad()
+    logits = model(src, tgt_input)
+    
+    # Calcular pérdida
+    # logits: [batch, seq_len-1, vocab_size]
+    # tgt_labels: [batch, seq_len-1]
+    loss = criterion(
+        logits.reshape(-1, logits.size(-1)),
+        tgt_labels.reshape(-1)
+    )
+    
+    # Backward pass
+    loss.backward()
+    
+    # Gradient clipping (evitar gradientes explosivos)
+    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+    
+    optimizer.step()
+    
+    return loss.item()
+
+
+def train_epoch(model, dataloader, optimizer, criterion, device):
+    """Entrenar una época completa"""
+    total_loss = 0
+    num_batches = len(dataloader)
+    
+    for batch_idx, (src, tgt) in enumerate(dataloader):
+        loss = train_step(model, src, tgt, optimizer, criterion, device)
+        total_loss += loss
+        
+        if (batch_idx + 1) % 50 == 0:
+            avg_loss = total_loss / (batch_idx + 1)
+            print(f"  Batch {batch_idx + 1}/{num_batches} - Loss: {avg_loss:.4f}")
+    
+    return total_loss / num_batches
+
+
+@torch.no_grad()
+def evaluate(model, dataloader, criterion, device):
+    """Evaluar el modelo"""
+    model.eval()
+    total_loss = 0
+    
+    for src, tgt in dataloader:
+        src = src.to(device)
+        tgt = tgt.to(device)
+        
+        tgt_input = tgt[:, :-1]
+        tgt_labels = tgt[:, 1:]
+        
+        logits = model(src, tgt_input)
+        loss = criterion(
+            logits.reshape(-1, logits.size(-1)),
+            tgt_labels.reshape(-1)
+        )
+        
+        total_loss += loss.item()
+    
+    return total_loss / len(dataloader)
+
+
+# === GENERACIÓN (TRADUCCIÓN) ===
+
+@torch.no_grad()
+def translate(model, src_sentence, src_vocab, tgt_vocab, device, max_len=50):
+    """
+    Traducir una oración.
+    
+    Esta es la parte mágica: generar palabra por palabra.
+    """
+    model.eval()
+    
+    # 1. Convertir entrada a IDs
+    src_ids = [src_vocab['&lt;SOS&gt;']]
+    for word in src_sentence.lower().split():
+        src_ids.append(src_vocab.get(word, src_vocab['&lt;UNK&gt;']))
+    src_ids.append(src_vocab['&lt;EOS&gt;'])
+    src = torch.tensor([src_ids]).to(device)
+    
+    # 2. Encodear la entrada
+    src_mask = model.create_padding_mask(src)
+    encoder_output = model.encode(src, src_mask)
+    
+    # 3. Generar traducción palabra por palabra
+    tgt_ids = [tgt_vocab['&lt;SOS&gt;']]  # Empezar con token especial
+    
+    for _ in range(max_len):
+        # Convertir a tensor
+        tgt = torch.tensor([tgt_ids]).to(device)
+        tgt_mask = model.create_causal_mask(tgt)
+        
+        # Decodear
+        decoder_output = model.decode(tgt, encoder_output, src_mask, tgt_mask)
+        
+        # Obtener logits para la última posición
+        logits = model.output_projection(decoder_output[:, -1, :])
+        
+        # Elegir palabra más probable (greedy decoding)
+        next_word_id = torch.argmax(logits, dim=-1).item()
+        
+        # Añadir a la secuencia
+        tgt_ids.append(next_word_id)
+        
+        # Parar si generamos &lt;EOS&gt;
+        if next_word_id == tgt_vocab['&lt;EOS&gt;']:
+            break
+    
+    # 4. Convertir IDs de vuelta a palabras
+    inv_tgt_vocab = {v: k for k, v in tgt_vocab.items()}
+    translation = []
+    for id in tgt_ids[1:-1]:  # Excluir &lt;SOS&gt; y &lt;EOS&gt;
+        translation.append(inv_tgt_vocab.get(id, '&lt;UNK&gt;'))
+    
+    return ' '.join(translation)
+
+
+# === SCRIPT PRINCIPAL ===
+
+def main():
+    # Configuración
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Usando: {device}\n")
+    
+    # Vocabularios simplificados
+    # En la práctica, construirías estos a partir de tus datos
+    src_vocab = {
+        '&lt;PAD&gt;': 0, '&lt;SOS&gt;': 1, '&lt;EOS&gt;': 2, '&lt;UNK&gt;': 3,
+        'hello': 4, 'how': 5, 'are': 6, 'you': 7,
+        'good': 8, 'morning': 9, 'the': 10, 'cat': 11,
+        'sleeps': 12, 'dog': 13, 'runs': 14
+    }
+    
+    tgt_vocab = {
+        '&lt;PAD&gt;': 0, '&lt;SOS&gt;': 1, '&lt;EOS&gt;': 2, '&lt;UNK&gt;': 3,
+        'hola': 4, 'cómo': 5, 'estás': 6, 'buenos': 7,
+        'días': 8, 'el': 9, 'gato': 10, 'duerme': 11,
+        'perro': 12, 'corre': 13
+    }
+    
+    # Datos de ejemplo
+    # (En la práctica, cargarías un dataset real)
+    pairs = [
+        ("hello", "hola"),
+        ("good morning", "buenos días"),
+        ("how are you", "cómo estás"),
+        ("the cat sleeps", "el gato duerme"),
+        ("the dog runs", "el perro corre"),
+    ] * 100  # Repetir para tener más datos
+    
+    # Crear dataset y dataloaders
+    dataset = TranslationDataset(pairs, src_vocab, tgt_vocab)
+    train_size = int(0.8 * len(dataset))
+    val_size = len(dataset) - train_size
+    train_dataset, val_dataset = torch.utils.data.random_split(
+        dataset, [train_size, val_size]
+    )
+    
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+    
+    # Crear modelo
+    model = Transformer(
+        src_vocab_size=len(src_vocab),
+        tgt_vocab_size=len(tgt_vocab),
+        d_model=256,        # Más pequeño para ejemplo
+        num_heads=8,
+        num_layers=4,       # Menos capas para ejemplo
+        d_ff=1024,
+        dropout=0.1
+    ).to(device)
+    
+    print(f"Parámetros del modelo: {sum(p.numel() for p in model.parameters()):,}\n")
+    
+    # Criterio (ignorar padding)
+    criterion = nn.CrossEntropyLoss(ignore_index=src_vocab['&lt;PAD&gt;'])
+    
+    # Optimizador
+    optimizer = optim.Adam(model.parameters(), lr=0.0001, betas=(0.9, 0.98))
+    
+    # Entrenamiento
+    num_epochs = 10
+    best_val_loss = float('inf')
+    
+    print("Comenzando entrenamiento...\n")
+    print("="*60)
+    
+    for epoch in range(num_epochs):
+        print(f"\nÉpoca {epoch + 1}/{num_epochs}")
+        print("-" * 60)
+        
+        # Entrenar
+        train_loss = train_epoch(model, train_loader, optimizer, criterion, device)
+        
+        # Evaluar
+        val_loss = evaluate(model, val_loader, criterion, device)
+        
+        print(f"\nTrain Loss: {train_loss:.4f}")
+        print(f"Val Loss: {val_loss:.4f}")
+        
+        # Guardar mejor modelo
+        if val_loss &lt; best_val_loss:
+            best_val_loss = val_loss
+            torch.save(model.state_dict(), 'best_model.pt')
+            print("✓ Mejor modelo guardado")
+        
+        # Ejemplo de traducción
+        if (epoch + 1) % 2 == 0:
+            print("\nEjemplo de traducción:")
+            test = "the cat sleeps"
+            translation = translate(model, test, src_vocab, tgt_vocab, device)
+            print(f"  '{test}' → '{translation}'")
+    
+    print("\n" + "="*60)
+    print("¡Entrenamiento completado!")
+    print(f"Mejor pérdida de validación: {best_val_loss:.4f}")
+    
+    # Cargar mejor modelo y probar
+    model.load_state_dict(torch.load('best_model.pt'))
+    
+    print("\n" + "="*60)
+    print("Pruebas finales:")
+    print("-" * 60)
+    
+    test_sentences = [
+        "hello",
+        "good morning",
+        "the cat sleeps",
+        "the dog runs"
+    ]
+    
+    for sentence in test_sentences:
+        translation = translate(model, sentence, src_vocab, tgt_vocab, device)
+        print(f"'{sentence}' → '{translation}'")
+
+
+if __name__ == '__main__':
+    main()</code></pre>
+    </section>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+</html>

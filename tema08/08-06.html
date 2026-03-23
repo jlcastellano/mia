@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redes Transformers - Guía Comprensible</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>Redes Transformers - Guía Comprensible</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>6. Resumen Visual: Los Transformers en una Página</h1>
+        
+        <pre><code class="language-plaintext">┌─────────────────────────────────────────────────────────────┐
+│                  TRANSFORMER ORIGINAL                       │
+│                 (Para Traducción)                           │
+│                                                             │
+│  Entrada (Inglés)          Salida (Español)               │
+│       ↓                          ↑                          │
+│  ┌─────────┐              ┌─────────┐                      │
+│  │ ENCODER │──────────────│ DECODER │                      │
+│  │         │   Context     │         │                      │
+│  │ Mira    │   Memory      │ Genera  │                      │
+│  │ Todo    │              │ Palabra  │                      │
+│  │ a la    │              │ por      │                      │
+│  │ Vez     │              │ Palabra  │                      │
+│  └─────────┘              └─────────┘                      │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│                        GPT                                  │
+│               (Solo Decoder)                                │
+│                                                             │
+│  "Érase una vez..." → [GPT] → "...un dragón que vivía..."  │
+│                                                             │
+│  ✓ Genera texto                                             │
+│  ✓ Solo ve el pasado (causal)                              │
+│  ✓ Bueno para: escritura, chatbots, completar código      │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│                       BERT                                  │
+│               (Solo Encoder)                                │
+│                                                             │
+│  "El [MASK] duerme" → [BERT] → "gato"                      │
+│                                                             │
+│  ✓ Comprende texto                                          │
+│  ✓ Ve contexto completo (bidireccional)                    │
+│  ✓ Bueno para: clasificación, NER, Q&A                     │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│                  VISION TRANSFORMER                         │
+│                  (Encoder para Imágenes)                    │
+│                                                             │
+│  [Imagen] → Dividir en patches → [Transformer] → Clase     │
+│                                                             │
+│  ✓ Mismo principio que BERT                                 │
+│  ✓ Patches = palabras                                       │
+│  ✓ Bueno para: clasificación de imágenes                   │
+└─────────────────────────────────────────────────────────────┘</code></pre>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+</html>

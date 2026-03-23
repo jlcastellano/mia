@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redes Transformers - Guía Comprensible</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>Redes Transformers - Guía Comprensible</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>5. Las Tres Grandes Variantes de Transformers</h1>
+        
+        <p>Ahora que entiendes el Transformer básico, veamos las tres arquitecturas más influyentes que lo modificaron para diferentes propósitos.</p>
+        
+        <h2>5.1 GPT: El Maestro de la Generación de Texto</h2>
+        
+        <div class="nota-importante">
+            <p><strong>📝 Analogía: El Escritor Creativo</strong></p>
+            
+            <p>GPT es como un escritor que:</p>
+            <ul>
+                <li>Solo mira hacia atrás (no puede "hacer trampa" viendo el futuro)</li>
+                <li>Escribe palabra por palabra, basándose solo en lo que ya escribió</li>
+                <li>Puede continuar cualquier historia que le des</li>
+            </ul>
+            
+            <p><strong>Ejemplo:</strong></p>
+            <pre><code class="language-plaintext">Tú: "Érase una vez un dragón que"
+GPT: "...vivía en lo alto de una montaña nevada. Cada noche..."</code></pre>
+        </div>
+        
+        <p><strong>Diferencias clave con el Transformer original:</strong></p>
+        
+        <ol>
+            <li><strong>Solo usa el Decoder</strong> (no necesita Encoder)</li>
+            <li><strong>Entrenamiento:</strong> Predecir la siguiente palabra</li>
+            <li><strong>Generación:</strong> Autoregresiva (una palabra a la vez)</li>
+        </ol>
+        
+        <pre><code class="language-python">class GPT(nn.Module):
+    """
+    Versión simplificada de GPT.
+    """
+    def __init__(
+        self,
+        vocab_size,
+        d_model=768,
+        num_heads=12,
+        num_layers=12,
+        d_ff=3072,
+        max_len=1024,
+        dropout=0.1
+    ):
+        super().__init__()
+        
+        # Token embedding
+        self.token_embedding = nn.Embedding(vocab_size, d_model)
+        
+        # Positional embedding (learnable, a diferencia del Transformer)
+        self.pos_embedding = nn.Parameter(torch.zeros(1, max_len, d_model))
+        
+        # Bloques del decoder (masked self-attention)
+        self.blocks = nn.ModuleList([
+            GPTBlock(d_model, num_heads, d_ff, dropout)
+            for _ in range(num_layers)
+        ])
+        
+        # Layer norm final
+        self.ln_f = nn.LayerNorm(d_model)
+        
+        # Cabeza de predicción
+        self.lm_head = nn.Linear(d_model, vocab_size, bias=False)
+        
+        # Weight tying: reutilizar embeddings para la predicción
+        self.lm_head.weight = self.token_embedding.weight
+    
+    def forward(self, input_ids):
+        """
+        input_ids: [batch, seq_len] - Secuencia de tokens
+        """
+        batch_size, seq_len = input_ids.size()
+        
+        # Embeddings
+        token_emb = self.token_embedding(input_ids)  # [batch, seq_len, d_model]
+        pos_emb = self.pos_embedding[:, :seq_len, :]  # [1, seq_len, d_model]
+        
+        x = token_emb + pos_emb
+        
+        # Pasar por bloques
+        for block in self.blocks:
+            x = block(x)
+        
+        # Normalización final
+        x = self.ln_f(x)
+        
+        # Proyección a vocabulario
+        logits = self.lm_head(x)  # [batch, seq_len, vocab_size]
+        
+        return logits
+    
+    @torch.no_grad()
+    def generate(self, prompt_ids, max_new_tokens=50, temperature=1.0):
+        """
+        Generar texto continuando el prompt.
+        
+        prompt_ids: [1, seq_len] - Texto inicial
+        max_new_tokens: Cuántos tokens generar
+        temperature: Control de aleatoriedad (0.1 = conservador, 1.5 = creativo)
+        """
+        self.eval()
+        
+        for _ in range(max_new_tokens):
+            # Obtener predicciones
+            logits = self(prompt_ids)  # [1, seq_len, vocab_size]
+            
+            # Tomar logits del último token
+            logits = logits[:, -1, :] / temperature  # [1, vocab_size]
+            
+            # Convertir a probabilidades
+            probs = F.softmax(logits, dim=-1)
+            
+            # Samplear siguiente token
+            next_token = torch.multinomial(probs, num_samples=1)  # [1, 1]
+            
+            # Añadir a la secuencia
+            prompt_ids = torch.cat([prompt_ids, next_token], dim=1)
+        
+        return prompt_ids
+
+
+class GPTBlock(nn.Module):
+    """Bloque individual de GPT"""
+    def __init__(self, d_model, num_heads, d_ff, dropout):
+        super().__init__()
+        
+        self.ln1 = nn.LayerNorm(d_model)
+        self.attn = CausalSelfAttention(d_model, num_heads, dropout)
+        self.ln2 = nn.LayerNorm(d_model)
+        self.mlp = FeedForward(d_model, d_ff, dropout)
+    
+    def forward(self, x):
+        # Pre-norm (diferente del Transformer original)
+        x = x + self.attn(self.ln1(x))
+        x = x + self.mlp(self.ln2(x))
+        return x
+
+
+class CausalSelfAttention(nn.Module):
+    """Attention que solo puede ver el pasado"""
+    def __init__(self, d_model, num_heads, dropout):
+        super().__init__()
+        
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.d_k = d_model // num_heads
+        
+        self.qkv = nn.Linear(d_model, 3 * d_model)
+        self.proj = nn.Linear(d_model, d_model)
+        self.dropout = nn.Dropout(dropout)
+        
+        # Máscara causal (triángulo inferior)
+        # La registramos como buffer para que se mueva automáticamente a GPU/CPU
+        self.register_buffer(
+            "mask",
+            torch.tril(torch.ones(1024, 1024)).view(1, 1, 1024, 1024)
+        )
+    
+    def forward(self, x):
+        B, T, C = x.size()  # batch, seq_len, d_model
+        
+        # Calcular Q, K, V en una sola operación (más eficiente)
+        qkv = self.qkv(x)  # [B, T, 3*C]
+        q, k, v = qkv.split(self.d_model, dim=2)
+        
+        # Dividir en cabezas
+        q = q.view(B, T, self.num_heads, self.d_k).transpose(1, 2)  # [B, nh, T, dk]
+        k = k.view(B, T, self.num_heads, self.d_k).transpose(1, 2)
+        v = v.view(B, T, self.num_heads, self.d_k).transpose(1, 2)
+        
+        # Attention
+        scores = (q @ k.transpose(-2, -1)) / (self.d_k ** 0.5)  # [B, nh, T, T]
+        
+        # Aplicar máscara causal
+        scores = scores.masked_fill(self.mask[:, :, :T, :T] == 0, float('-inf'))
+        
+        attn_weights = F.softmax(scores, dim=-1)
+        attn_weights = self.dropout(attn_weights)
+        
+        out = attn_weights @ v  # [B, nh, T, dk]
+        
+        # Recombinar cabezas
+        out = out.transpose(1, 2).contiguous().view(B, T, C)
+        
+        # Proyección final
+        out = self.proj(out)
+        
+        return out</code></pre>
+        
+        <p><strong>Ejemplo de uso de GPT:</strong></p>
+        
+        <pre><code class="language-python"># Crear modelo
+vocab_size = 50000
+gpt = GPT(vocab_size=vocab_size, d_model=768, num_layers=12)
+
+# Prompt
+prompt = "Once upon a time"
+prompt_ids = tokenize(prompt)  # Función que convierte texto a IDs
+
+# Generar continuación
+generated_ids = gpt.generate(
+    prompt_ids,
+    max_new_tokens=100,
+    temperature=0.8  # Un poco creativo
+)
+
+# Convertir de vuelta a texto
+generated_text = detokenize(generated_ids)
+print(generated_text)</code></pre>
+        
+        <h2>5.2 BERT: El Maestro de la Comprensión</h2>
+        
+        <div class="nota-importante">
+            <p><strong>🔍 Analogía: El Detective Analítico</strong></p>
+            
+            <p>BERT es como un detective que:</p>
+            <ul>
+                <li>Puede ver la escena del crimen completa (todo el contexto)</li>
+                <li>Mira hacia adelante Y hacia atrás</li>
+                <li>Su trabajo NO es generar, sino COMPRENDER</li>
+            </ul>
+            
+            <p><strong>Ejemplo:</strong></p>
+            <pre><code class="language-plaintext">Texto: "El banco estaba lleno, así que fui al banco del río."
+BERT entiende: Primer "banco" = institución financiera
+              Segundo "banco" = orilla del río</code></pre>
+        </div>
+        
+        <p><strong>Diferencias clave:</strong></p>
+        
+        <ol>
+            <li><strong>Solo usa el Encoder</strong> (sin Decoder)</li>
+            <li><strong>Atención bidireccional</strong> (puede ver todo el contexto)</li>
+            <li><strong>No genera texto</strong>, solo comprende</li>
+            <li><strong>Entrenamiento especial:</strong> Masked Language Modeling</li>
+        </ol>
+        
+        <pre><code class="language-python">class BERT(nn.Module):
+    """
+    Versión simplificada de BERT.
+    """
+    def __init__(
+        self,
+        vocab_size,
+        d_model=768,
+        num_heads=12,
+        num_layers=12,
+        d_ff=3072,
+        max_len=512,
+        dropout=0.1
+    ):
+        super().__init__()
+        
+        # Embeddings
+        self.token_embedding = nn.Embedding(vocab_size, d_model)
+        self.pos_embedding = nn.Embedding(max_len, d_model)
+        self.segment_embedding = nn.Embedding(2, d_model)  # Para pares de oraciones
+        
+        # Encoder blocks
+        self.blocks = nn.ModuleList([
+            TransformerBlock(d_model, num_heads, d_ff, dropout)
+            for _ in range(num_layers)
+        ])
+        
+        self.ln = nn.LayerNorm(d_model)
+    
+    def forward(self, input_ids, segment_ids=None):
+        """
+        input_ids: [batch, seq_len] - Tokens (pueden tener [MASK])
+        segment_ids: [batch, seq_len] - 0 o 1 para distinguir oraciones
+        """
+        batch_size, seq_len = input_ids.size()
+        
+        # Token embeddings
+        token_emb = self.token_embedding(input_ids)
+        
+        # Position embeddings
+        pos_ids = torch.arange(seq_len, device=input_ids.device).unsqueeze(0)
+        pos_emb = self.pos_embedding(pos_ids)
+        
+        # Segment embeddings (si se proporcionan)
+        if segment_ids is None:
+            segment_ids = torch.zeros_like(input_ids)
+        seg_emb = self.segment_embedding(segment_ids)
+        
+        # Combinar embeddings
+        x = token_emb + pos_emb + seg_emb
+        
+        # Pasar por encoder blocks
+        for block in self.blocks:
+            x = block(x)
+        
+        x = self.ln(x)
+        
+        return x
+
+
+class BERTForMaskedLM(nn.Module):
+    """BERT para predecir palabras enmascaradas"""
+    def __init__(self, bert, vocab_size):
+        super().__init__()
+        self.bert = bert
+        self.mlm_head = nn.Linear(bert.d_model, vocab_size)
+    
+    def forward(self, input_ids, segment_ids=None):
+        # Obtener representaciones
+        hidden_states = self.bert(input_ids, segment_ids)
+        
+        # Predecir tokens enmascarados
+        predictions = self.mlm_head(hidden_states)
+        
+        return predictions
+
+
+# === Entrenamiento con Masked Language Modeling ===
+
+def create_masked_lm_data(text, vocab, mask_prob=0.15):
+    """
+    Crear datos para entrenamiento de BERT.
+    
+    Enmascara aleatoriamente 15% de las palabras:
+    - 80% reemplazadas por [MASK]
+    - 10% reemplazadas por palabra aleatoria
+    - 10% sin cambios
+    """
+    tokens = tokenize(text, vocab)
+    labels = tokens.copy()
+    
+    for i in range(len(tokens)):
+        if random.random() &lt; mask_prob:
+            # Decidir qué hacer con este token
+            rand = random.random()
+            
+            if rand &lt; 0.8:
+                # 80%: reemplazar con [MASK]
+                tokens[i] = vocab['[MASK]']
+            elif rand &lt; 0.9:
+                # 10%: reemplazar con token aleatorio
+                tokens[i] = random.choice(list(vocab.values()))
+            # 10%: dejar sin cambios
+        else:
+            # No enmascarado, no calcular pérdida aquí
+            labels[i] = -100  # Ignorar en pérdida
+    
+    return torch.tensor(tokens), torch.tensor(labels)
+
+
+# Ejemplo de fine-tuning para clasificación
+class BERTForClassification(nn.Module):
+    """Usar BERT para clasificar textos"""
+    def __init__(self, bert, num_classes):
+        super().__init__()
+        self.bert = bert
+        self.classifier = nn.Linear(bert.d_model, num_classes)
+    
+    def forward(self, input_ids):
+        # Obtener representaciones
+        hidden_states = self.bert(input_ids)
+        
+        # Usar token [CLS] (primera posición) para clasificación
+        cls_representation = hidden_states[:, 0, :]
+        
+        # Clasificar
+        logits = self.classifier(cls_representation)
+        
+        return logits</code></pre>
+        
+        <h2>5.3 Vision Transformer (ViT): Transformers para Imágenes</h2>
+        
+        <div class="nota-importante">
+            <p><strong>🖼️ Analogía: Rompecabezas de Imagen</strong></p>
+            
+            <p>ViT trata una imagen como un rompecabezas:</p>
+            <ol>
+                <li>Corta la imagen en cuadraditos (patches)</li>
+                <li>Cada cuadradito es como una "palabra"</li>
+                <li>Aplica Transformer normal a estos "parches-palabras"</li>
+            </ol>
+            
+            <pre><code class="language-plaintext">Imagen 224×224 → 196 patches de 16×16
+Cada patch → Un "token" de 768 dimensiones
+Procesar con Transformer normal</code></pre>
+        </div>
+        
+        <pre><code class="language-python">class VisionTransformer(nn.Module):
+    """
+    Vision Transformer (ViT) para clasificación de imágenes.
+    """
+    def __init__(
+        self,
+        image_size=224,      # Tamaño de imagen
+        patch_size=16,       # Tamaño de cada patch
+        num_classes=1000,    # Número de clases (ej. ImageNet)
+        d_model=768,
+        num_heads=12,
+        num_layers=12,
+        d_ff=3072
+    ):
+        super().__init__()
+        
+        self.patch_size = patch_size
+        num_patches = (image_size // patch_size) ** 2
+        
+        # Convertir patches a embeddings
+        self.patch_embedding = nn.Conv2d(
+            in_channels=3,           # RGB
+            out_channels=d_model,
+            kernel_size=patch_size,
+            stride=patch_size
+        )
+        
+        # Token de clasificación [CLS]
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, d_model))
+        
+        # Position embeddings (learnable)
+        self.pos_embedding = nn.Parameter(
+            torch.zeros(1, num_patches + 1, d_model)
+        )
+        
+        # Transformer encoder
+        self.blocks = nn.ModuleList([
+            TransformerBlock(d_model, num_heads, d_ff)
+            for _ in range(num_layers)
+        ])
+        
+        self.ln = nn.LayerNorm(d_model)
+        
+        # Cabeza de clasificación
+        self.head = nn.Linear(d_model, num_classes)
+    
+    def forward(self, images):
+        """
+        images: [batch, 3, 224, 224]
+        """
+        batch_size = images.size(0)
+        
+        # 1. Dividir en patches y hacer embedding
+        x = self.patch_embedding(images)  # [B, d_model, 14, 14]
+        x = x.flatten(2)  # [B, d_model, 196]
+        x = x.transpose(1, 2)  # [B, 196, d_model]
+        
+        # 2. Añadir token de clasificación
+        cls_tokens = self.cls_token.expand(batch_size, -1, -1)
+        x = torch.cat([cls_tokens, x], dim=1)  # [B, 197, d_model]
+        
+        # 3. Añadir positional embeddings
+        x = x + self.pos_embedding
+        
+        # 4. Pasar por transformer
+        for block in self.blocks:
+            x = block(x)
+        
+        x = self.ln(x)
+        
+        # 5. Usar token [CLS] para clasificación
+        cls_output = x[:, 0]
+        logits = self.head(cls_output)
+        
+        return logits
+
+# Uso
+vit = VisionTransformer(
+    image_size=224,
+    patch_size=16,
+    num_classes=1000,
+    d_model=768,
+    num_layers=12
+)
+
+# Clasificar imagen
+image = torch.randn(1, 3, 224, 224)  # [batch, canales, alto, ancho]
+predictions = vit(image)  # [1, 1000]
+
+predicted_class = torch.argmax(predictions, dim=-1)
+print(f"Clase predicha: {predicted_class.item()}")</code></pre>
+    </section>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+</html>

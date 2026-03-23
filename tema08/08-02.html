@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redes Transformers - Guía Comprensible</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>Redes Transformers - Guía Comprensible</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>2. Los Ingredientes Fundamentales del Transformer</h1>
+        
+        <p>Vamos a construir un Transformer como si preparáramos una receta de cocina, ingrediente por ingrediente.</p>
+        
+        <h2>2.1 Ingrediente #1: Embeddings (Convertir Palabras en Números)</h2>
+        
+        <p>Las computadoras no entienden palabras. Solo entienden números. Así que primero necesitamos convertir cada palabra en un vector de números.</p>
+        
+        <div class="nota-importante">
+            <p><strong>🎨 Analogía: Coordenadas en un Mapa Conceptual</strong></p>
+            
+            <p>Imagina que cada palabra es un punto en un mapa multidimensional donde la ubicación representa su significado:</p>
+            
+            <pre><code class="language-plaintext">Dimensión 1 (Humanidad):    animal ← ... → humano
+Dimensión 2 (Edad):         bebé ← ... → anciano  
+Dimensión 3 (Género):       masculino ← ... → femenino
+... (y 500 dimensiones más)</code></pre>
+            
+            <p>Entonces:</p>
+            <ul>
+                <li>"Rey" podría estar en [0.9 humano, 0.7 adulto, 0.9 masculino, ...]</li>
+                <li>"Reina" podría estar en [0.9 humano, 0.7 adulto, 0.1 femenino, ...]</li>
+                <li>"Perro" podría estar en [0.1 humano, 0.5 adulto, 0.5 neutral, ...]</li>
+            </ul>
+            
+            <p>Matemática famosa: Rey - Hombre + Mujer ≈ Reina</p>
+            
+            <p>Esto funciona porque los embeddings capturan relaciones semánticas.</p>
+        </div>
+        
+        <p><strong>Implementación Simple:</strong></p>
+        
+        <pre><code class="language-python">import torch
+import torch.nn as nn
+
+# Vocabulario simple
+vocab = {
+    "&lt;PAD&gt;": 0,    # Padding (relleno)
+    "el": 1,
+    "gato": 2,
+    "come": 3,
+    "pescado": 4
+}
+
+# Tamaño del embedding (cuántas dimensiones)
+embedding_dim = 512
+
+# Capa de embedding
+embedding_layer = nn.Embedding(
+    num_embeddings=len(vocab),  # Tamaño del vocabulario
+    embedding_dim=embedding_dim  # Dimensiones del vector
+)
+
+# Convertir palabra a número
+palabra_id = vocab["gato"]  # 2
+
+# Obtener vector de embedding
+vector_gato = embedding_layer(torch.tensor([palabra_id]))
+print(f"Vector del gato: {vector_gato.shape}")  # [1, 512]
+# Ahora "gato" es un vector de 512 números</code></pre>
+        
+        <p><strong>¿De dónde vienen estos números?</strong></p>
+        
+        <p>Al principio, son aleatorios. Durante el entrenamiento, el modelo los ajusta para que palabras similares tengan vectores similares.</p>
+        
+        <h2>2.2 Ingrediente #2: Positional Encoding (Dónde está cada palabra)</h2>
+        
+        <p>Tenemos un problema: los Transformers procesan todas las palabras simultáneamente, pero el orden importa:</p>
+        
+        <pre><code class="language-plaintext">"El perro muerde al hombre" ≠ "El hombre muerde al perro"</code></pre>
+        
+        <p><strong>Solución:</strong> Añadir información de posición a cada palabra.</p>
+        
+        <div class="nota-importante">
+            <p><strong>📍 Analogía: Números de Asiento en un Cine</strong></p>
+            
+            <p>Imagina que cada palabra es una persona en un cine. No basta con saber quiénes están (los embeddings), necesitas saber dónde se sientan:</p>
+            
+            <pre><code class="language-plaintext">Fila A: [Persona1, Persona2, Persona3]
+        Asiento1  Asiento2  Asiento3</code></pre>
+            
+            <p>El "Positional Encoding" es como darle a cada persona una etiqueta con su número de asiento. Así, aunque proceses a todas las personas simultáneamente, sabes en qué orden están sentadas.</p>
+        </div>
+        
+        <p><strong>El Truco Inteligente del Paper Original:</strong></p>
+        
+        <p>En lugar de usar números simples (1, 2, 3, ...), usan ondas sinusoidales de diferentes frecuencias:</p>
+        
+        <pre><code class="language-python">import numpy as np
+
+def positional_encoding(max_len, d_model):
+    """
+    Crear encodings de posición sinusoidales.
+    
+    max_len: longitud máxima de la secuencia
+    d_model: dimensión del embedding
+    """
+    # Crear matriz de posiciones
+    position = np.arange(max_len)[:, np.newaxis]  # [[0], [1], [2], ...]
+    
+    # Crear frecuencias diferentes
+    div_term = np.exp(np.arange(0, d_model, 2) * -(np.log(10000.0) / d_model))
+    
+    # Inicializar matriz de encodings
+    pe = np.zeros((max_len, d_model))
+    
+    # Aplicar seno a dimensiones pares
+    pe[:, 0::2] = np.sin(position * div_term)
+    
+    # Aplicar coseno a dimensiones impares
+    pe[:, 1::2] = np.cos(position * div_term)
+    
+    return pe
+
+# Ejemplo de uso
+pe = positional_encoding(max_len=100, d_model=512)
+print(f"Shape: {pe.shape}")  # (100, 512)
+
+# Visualización simplificada de las primeras 4 posiciones
+print("Primeras 4 posiciones (primeros 4 valores):")
+print(pe[:4, :4])</code></pre>
+        
+        <p><strong>¿Por qué seno y coseno?</strong></p>
+        
+        <p>Porque estas ondas tienen propiedades mágicas:</p>
+        <ul>
+            <li>Posiciones cercanas tienen encodings similares</li>
+            <li>El modelo puede "aprender" que posición 5 está cerca de posición 6</li>
+            <li>También puede extrapolar a secuencias más largas de las que vio en entrenamiento</li>
+        </ul>
+        
+        <div class="nota-importante">
+            <p><strong>🌊 Analogía: Ondas de Radio</strong></p>
+            
+            <p>Imagina que cada posición transmite su ubicación como múltiples ondas de radio simultáneamente:</p>
+            
+            <ul>
+                <li><strong>Onda lenta (baja frecuencia):</strong> Cambia muy gradualmente. Útil para distinguir "principio" vs. "final" de la oración.</li>
+                <li><strong>Onda rápida (alta frecuencia):</strong> Cambia rápidamente. Útil para distinguir palabras consecutivas.</li>
+            </ul>
+            
+            <p>Combinando ondas de diferentes velocidades, cada posición tiene una "firma" única pero relacionada con sus vecinos.</p>
+        </div>
+        
+        <h2>2.3 Ingrediente #3: Attention (El Corazón del Transformer)</h2>
+        
+        <p>Esta es la parte más importante y la que hace que todo funcione.</p>
+        
+        <div class="nota-importante">
+            <p><strong>🎯 Analogía: Una Reunión donde Cada Persona Puede Hablar con Cualquier Otra</strong></p>
+            
+            <p>Imagina una reunión con 10 personas. En lugar de que hablen una por una en orden:</p>
+            
+            <p><strong>Old School (RNN):</strong> Persona 1 habla con Persona 2, quien habla con Persona 3, etc.</p>
+            
+            <p><strong>Transformer (Attention):</strong> Todas las personas están en una mesa redonda. Cada persona puede:</p>
+            <ol>
+                <li><strong>Hacer preguntas a todos los demás</strong> (Query: "¿Quién tiene información sobre X?")</li>
+                <li><strong>Responder con su información</strong> (Key: "Yo tengo información sobre Y")</li>
+                <li><strong>Compartir detalles cuando se lo piden</strong> (Value: "Aquí están los detalles...")</li>
+            </ol>
+            
+            <p>Cada persona decide A QUIÉN escuchar más atentamente basándose en qué tan relevantes son sus respuestas.</p>
+        </div>
+        
+        <h3>2.3.1 Los Tres Componentes: Query, Key, Value</h3>
+        
+        <p>Vamos a entender esto con un ejemplo práctico:</p>
+        
+        <pre><code class="language-plaintext">Oración: "El gato negro duerme en la cama"</code></pre>
+        
+        <p>Queremos que la palabra "duerme" entienda su contexto. ¿Quién duerme? ¿Dónde?</p>
+        
+        <p><strong>Query (Pregunta):</strong> "duerme" pregunta: "¿Quién es el sujeto? ¿Dónde ocurre?"</p>
+        
+        <p><strong>Keys (Etiquetas):</strong> Cada palabra dice qué información ofrece:</p>
+        <ul>
+            <li>"El" → "Soy un artículo"</li>
+            <li>"gato" → "Soy un animal (sujeto)"</li>
+            <li>"negro" → "Soy un adjetivo"</li>
+            <li>"en" → "Soy una preposición de ubicación"</li>
+            <li>"cama" → "Soy un lugar"</li>
+        </ul>
+        
+        <p><strong>Values (Contenido):</strong> El contenido real de cada palabra</p>
+        
+        <p><strong>El Proceso:</strong></p>
+        
+        <ol>
+            <li>"duerme" compara su Query con todas las Keys</li>
+            <li>Descubre que "gato" y "cama" son muy relevantes</li>
+            <li>Presta MUCHA atención a esos valores</li>
+            <li>Presta POCA atención a "el", "negro", "en"</li>
+        </ol>
+        
+        <p><strong>Resultado:</strong> "duerme" ahora tiene una representación enriquecida que sabe que "el gato duerme en la cama".</p>
+        
+        <h3>2.3.2 Implementación Simplificada de Attention</h3>
+        
+        <pre><code class="language-python">import torch
+import torch.nn.functional as F
+
+def simple_attention(query, key, value):
+    """
+    Implementación básica de attention.
+    
+    query: [batch, seq_len, d_k] - Las preguntas
+    key:   [batch, seq_len, d_k] - Las etiquetas
+    value: [batch, seq_len, d_v] - Los contenidos
+    """
+    
+    # Paso 1: Calcular similitud entre queries y keys
+    # ¿Qué tan similar es cada pregunta con cada etiqueta?
+    d_k = query.size(-1)
+    scores = torch.matmul(query, key.transpose(-2, -1))  # [batch, seq_len, seq_len]
+    
+    # Paso 2: Escalar (para estabilidad numérica)
+    scores = scores / torch.sqrt(torch.tensor(d_k, dtype=torch.float32))
+    
+    # Paso 3: Softmax (convertir a probabilidades)
+    # Esto convierte los scores en "pesos de atención"
+    attention_weights = F.softmax(scores, dim=-1)
+    
+    # Paso 4: Aplicar pesos a los valores
+    # Cuanto mayor el peso, más información tomamos de ese valor
+    output = torch.matmul(attention_weights, value)
+    
+    return output, attention_weights
+
+# Ejemplo de uso
+batch_size = 1
+seq_len = 5  # "el gato negro duerme en"
+d_model = 64
+
+# Simular embeddings
+embeddings = torch.randn(batch_size, seq_len, d_model)
+
+# Por simplicidad, usar mismo embedding para Q, K, V
+# (En la práctica, se proyectan a través de matrices diferentes)
+output, weights = simple_attention(embeddings, embeddings, embeddings)
+
+print(f"Output shape: {output.shape}")  # [1, 5, 64]
+print(f"Attention weights shape: {weights.shape}")  # [1, 5, 5]
+
+# Visualizar pesos de atención para la palabra 3 (duerme)
+print("\nPesos de atención de la palabra 3:")
+print(weights[0, 3, :])  # ¿A qué palabras presta atención?</code></pre>
+        
+        <div class="nota-importante">
+            <p><strong>🔍 Visualizando Attention</strong></p>
+            
+            <p>Imagina una matriz donde cada fila es una palabra, y cada columna indica cuánta atención presta a otras palabras:</p>
+            
+            <pre><code class="language-plaintext">           el    gato  negro  duerme  en    cama
+el       [0.2,  0.3,  0.1,   0.1,    0.1,  0.2]   ← "el" presta más atención a "gato"
+gato     [0.1,  0.3,  0.3,   0.2,    0.05, 0.05]  ← "gato" presta atención a "negro"
+negro    [0.05, 0.4,  0.3,   0.1,    0.05, 0.1]   ← "negro" presta atención a "gato"
+duerme   [0.05, 0.4,  0.1,   0.1,    0.15, 0.2]   ← "duerme" presta más atención a "gato" y "cama"
+en       [0.05, 0.1,  0.05,  0.1,    0.2,  0.5]   ← "en" presta más atención a "cama"
+cama     [0.05, 0.1,  0.05,  0.15,   0.3,  0.35]  ← "cama" presta atención a "en" y a sí misma</code></pre>
+            
+            <p>Cada número representa: "¿Qué tan importante es esta palabra para entender aquella?"</p>
+        </div>
+        
+        <h3>2.3.3 Multi-Head Attention (Múltiples Perspectivas)</h3>
+        
+        <p>Un solo mecanismo de atención puede perderse detalles. Es como mirar una pintura desde un solo ángulo.</p>
+        
+        <div class="nota-importante">
+            <p><strong>👥 Analogía: Múltiples Expertos Analizando</strong></p>
+            
+            <p>Imagina que tienes 8 expertos diferentes analizando la misma oración:</p>
+            
+            <ul>
+                <li><strong>Experto 1 (sintáctico):</strong> Se enfoca en relaciones gramaticales. Conecta sustantivos con verbos, adjetivos con sustantivos.</li>
+                <li><strong>Experto 2 (semántico):</strong> Se enfoca en significado. Conecta "gato" con "animal", "duerme" con "cama".</li>
+                <li><strong>Experto 3 (temporal):</strong> Se enfoca en secuencia temporal de eventos.</li>
+                <li><strong>Experto 4 (causal):</strong> Se enfoca en relaciones causa-efecto.</li>
+                <li>...y 4 expertos más, cada uno buscando patrones diferentes.</li>
+            </ul>
+            
+            <p>Al final, combinas las observaciones de los 8 expertos para tener una comprensión completa.</p>
+        </div>
+        
+        <pre><code class="language-python">class MultiHeadAttention(nn.Module):
+    def __init__(self, d_model=512, num_heads=8):
+        super().__init__()
+        
+        assert d_model % num_heads == 0, "d_model debe ser divisible por num_heads"
+        
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.d_k = d_model // num_heads  # Dimensión por cabeza
+        
+        # Proyecciones para crear Q, K, V
+        self.W_q = nn.Linear(d_model, d_model)
+        self.W_k = nn.Linear(d_model, d_model)
+        self.W_v = nn.Linear(d_model, d_model)
+        
+        # Proyección final
+        self.W_o = nn.Linear(d_model, d_model)
+    
+    def split_heads(self, x):
+        """Dividir en múltiples cabezas"""
+        batch_size, seq_len, d_model = x.size()
+        # Reshape a [batch, seq_len, num_heads, d_k]
+        x = x.view(batch_size, seq_len, self.num_heads, self.d_k)
+        # Transponer a [batch, num_heads, seq_len, d_k]
+        return x.transpose(1, 2)
+    
+    def forward(self, query, key, value, mask=None):
+        batch_size = query.size(0)
+        
+        # 1. Proyectar Q, K, V
+        Q = self.W_q(query)  # [batch, seq_len, d_model]
+        K = self.W_k(key)
+        V = self.W_v(value)
+        
+        # 2. Dividir en múltiples cabezas
+        Q = self.split_heads(Q)  # [batch, num_heads, seq_len, d_k]
+        K = self.split_heads(K)
+        V = self.split_heads(V)
+        
+        # 3. Aplicar attention a cada cabeza
+        d_k = self.d_k
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / torch.sqrt(torch.tensor(d_k, dtype=torch.float32))
+        
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+        
+        attention_weights = F.softmax(scores, dim=-1)
+        attention_output = torch.matmul(attention_weights, V)
+        
+        # 4. Concatenar cabezas
+        # [batch, num_heads, seq_len, d_k] → [batch, seq_len, num_heads, d_k]
+        attention_output = attention_output.transpose(1, 2).contiguous()
+        # → [batch, seq_len, d_model]
+        attention_output = attention_output.view(batch_size, -1, self.d_model)
+        
+        # 5. Proyección final
+        output = self.W_o(attention_output)
+        
+        return output
+
+# Uso
+mha = MultiHeadAttention(d_model=512, num_heads=8)
+x = torch.randn(1, 10, 512)  # [batch, seq_len, d_model]
+output = mha(x, x, x)
+print(f"Output shape: {output.shape}")  # [1, 10, 512]</code></pre>
+        
+        <h2>2.4 Ingrediente #4: Feed-Forward Networks (Procesamiento Individual)</h2>
+        
+        <p>Después de que cada palabra ha recopilado información de todas las demás a través de attention, necesita "pensar" individualmente sobre esa información.</p>
+        
+        <div class="nota-importante">
+            <p><strong>🧠 Analogía: Reflexión Personal</strong></p>
+            
+            <p>Imagina que después de la reunión (attention), cada persona se va a su oficina privada a procesar toda la información que escuchó y formar sus propias conclusiones.</p>
+            
+            <p><strong>Attention:</strong> "Escuchar a todos"<br>
+            <strong>Feed-Forward:</strong> "Pensar en lo que escuché"</p>
+            
+            <p>Es una red neuronal simple aplicada a cada posición independientemente.</p>
+        </div>
+        
+        <pre><code class="language-python">class FeedForward(nn.Module):
+    def __init__(self, d_model=512, d_ff=2048, dropout=0.1):
+        super().__init__()
+        
+        # Dos capas lineales con ReLU en medio
+        self.linear1 = nn.Linear(d_model, d_ff)
+        self.linear2 = nn.Linear(d_ff, d_model)
+        self.dropout = nn.Dropout(dropout)
+    
+    def forward(self, x):
+        # x: [batch, seq_len, d_model]
+        
+        # Expandir
+        x = self.linear1(x)  # [batch, seq_len, d_ff]
+        x = F.relu(x)
+        x = self.dropout(x)
+        
+        # Contraer de vuelta
+        x = self.linear2(x)  # [batch, seq_len, d_model]
+        
+        return x
+
+# Uso
+ff = FeedForward(d_model=512, d_ff=2048)
+x = torch.randn(1, 10, 512)
+output = ff(x)
+print(f"Output shape: {output.shape}")  # [1, 10, 512]</code></pre>
+        
+        <p><strong>¿Por qué expandir y contraer?</strong></p>
+        
+        <p>Es como comprimir y descomprimir información:</p>
+        <ul>
+            <li><strong>Expandir (512 → 2048):</strong> Crea más espacio para representaciones ricas e intermedias</li>
+            <li><strong>ReLU:</strong> Introduce no-linealidad (permite aprender patrones complejos)</li>
+            <li><strong>Contraer (2048 → 512):</strong> Destila la información de vuelta al tamaño original</li>
+        </ul>
+        
+        <h2>2.5 Ingrediente #5: Residual Connections y Layer Normalization</h2>
+        
+        <p>Estos son trucos cruciales que hacen que las redes profundas (muchas capas) funcionen.</p>
+        
+        <h3>2.5.1 Residual Connections (Conexiones de Atajo)</h3>
+        
+        <div class="nota-importante">
+            <p><strong>🏃 Analogía: Atajos en un Edificio</strong></p>
+            
+            <p>Imagina un edificio de 10 pisos. Tienes que subir desde el piso 1 al piso 10:</p>
+            
+            <p><strong>Sin atajos:</strong> Subes piso por piso. Si hay un problema en el piso 5, la información del piso 1 podría no llegar bien al piso 10.</p>
+            
+            <p><strong>Con atajos (residual connections):</strong> Además de las escaleras, hay un ascensor directo. La información puede fluir directamente del piso 1 al 10, Y también puede tomar las escaleras si aprende algo útil en el camino.</p>
+            
+            <p>Matemáticamente:</p>
+            <pre><code class="language-plaintext">Output = Input + SubLayer(Input)</code></pre>
+            
+            <p>No reemplazamos el input, lo MEJORAMOS.</p>
+        </div>
+        
+        <pre><code class="language-python">class TransformerBlock(nn.Module):
+    def __init__(self, d_model=512, num_heads=8, d_ff=2048, dropout=0.1):
+        super().__init__()
+        
+        self.attention = MultiHeadAttention(d_model, num_heads)
+        self.feed_forward = FeedForward(d_model, d_ff, dropout)
+        
+        # Layer Normalization
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+        
+        self.dropout1 = nn.Dropout(dropout)
+        self.dropout2 = nn.Dropout(dropout)
+    
+    def forward(self, x, mask=None):
+        # Attention con residual connection
+        attn_output = self.attention(x, x, x, mask)
+        x = x + self.dropout1(attn_output)  # ← Residual connection
+        x = self.norm1(x)  # ← Normalization
+        
+        # Feed-forward con residual connection
+        ff_output = self.feed_forward(x)
+        x = x + self.dropout2(ff_output)  # ← Residual connection
+        x = self.norm2(x)  # ← Normalization
+        
+        return x</code></pre>
+        
+        <h3>2.5.2 Layer Normalization</h3>
+        
+        <div class="nota-importante">
+            <p><strong>⚖️ Analogía: Normalizar Calificaciones</strong></p>
+            
+            <p>Imagina que tienes tres profesores que califican de forma diferente:</p>
+            <ul>
+                <li>Profesor A: Da calificaciones de 60-70 (difícil)</li>
+                <li>Profesor B: Da calificaciones de 80-90 (fácil)</li>
+                <li>Profesor C: Da calificaciones de 40-100 (muy variable)</li>
+            </ul>
+            
+            <p>Para comparar estudiantes, normalizas las calificaciones de cada profesor:</p>
+            <ul>
+                <li>Calculas el promedio y desviación estándar de cada profesor</li>
+                <li>Ajustas todas las calificaciones para que tengan la misma escala</li>
+            </ul>
+            
+            <p>Layer Normalization hace lo mismo con las activaciones de la red: las mantiene en un rango estable para que el entrenamiento sea más fácil.</p>
+        </div>
+        
+        <pre><code class="language-python">class LayerNorm(nn.Module):
+    def __init__(self, d_model, eps=1e-6):
+        super().__init__()
+        # Parámetros aprendibles
+        self.gamma = nn.Parameter(torch.ones(d_model))
+        self.beta = nn.Parameter(torch.zeros(d_model))
+        self.eps = eps
+    
+    def forward(self, x):
+        # x: [batch, seq_len, d_model]
+        
+        # Calcular media y varianza en la última dimensión
+        mean = x.mean(dim=-1, keepdim=True)
+        std = x.std(dim=-1, keepdim=True)
+        
+        # Normalizar
+        x_norm = (x - mean) / (std + self.eps)
+        
+        # Escalar y desplazar (parámetros aprendibles)
+        return self.gamma * x_norm + self.beta</code></pre>
+    </section>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+</html>

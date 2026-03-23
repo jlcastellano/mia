@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicio 1: Analizador de Sentimientos con BERT</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>Ejercicios Prácticos con Transformers</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>Ejercicio 1: Analizador de Sentimientos con BERT (Nivel: Principiante)</h1>
+
+        <h2>🎯 Objetivo</h2>
+        <p>Crear un clasificador que determine si una reseña de película es positiva o negativa usando BERT pre-entrenado.</p>
+
+        <h2>📝 Descripción</h2>
+        <p>Usa BERT ya entrenado y solo entrena una capa de clasificación encima. Aprenderás:</p>
+        <ul>
+            <li>Cómo cargar modelos pre-entrenados</li>
+            <li>Fine-tuning básico</li>
+            <li>Preparación de datos para transformers</li>
+        </ul>
+
+        <h2>💻 Código Inicial</h2>
+
+        <pre><code class="language-python">import torch
+import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
+from transformers import BertTokenizer, BertModel
+from sklearn.model_selection import train_test_split
+import numpy as np
+
+# === PASO 1: Dataset ===
+class SentimentDataset(Dataset):
+    """Dataset para análisis de sentimientos"""
+    def __init__(self, texts, labels, tokenizer, max_len=128):
+        self.texts = texts
+        self.labels = labels
+        self.tokenizer = tokenizer
+        self.max_len = max_len
+    
+    def __len__(self):
+        return len(self.texts)
+    
+    def __getitem__(self, idx):
+        text = str(self.texts[idx])
+        label = self.labels[idx]
+        
+        # Tokenizar con BERT tokenizer
+        encoding = self.tokenizer.encode_plus(
+            text,
+            add_special_tokens=True,
+            max_length=self.max_len,
+            padding='max_length',
+            truncation=True,
+            return_attention_mask=True,
+            return_tensors='pt'
+        )
+        
+        return {
+            'input_ids': encoding['input_ids'].flatten(),
+            'attention_mask': encoding['attention_mask'].flatten(),
+            'label': torch.tensor(label, dtype=torch.long)
+        }
+
+
+# === PASO 2: Modelo ===
+class SentimentClassifier(nn.Module):
+    def __init__(self, n_classes=2):
+        super().__init__()
+        
+        # BERT pre-entrenado
+        self.bert = BertModel.from_pretrained('bert-base-uncased')
+        
+        # Congelar parámetros de BERT (opcional, hace entrenamiento más rápido)
+        # Descomenta la siguiente línea si quieres solo entrenar el clasificador
+        # for param in self.bert.parameters():
+        #     param.requires_grad = False
+        
+        # Capa de clasificación
+        self.dropout = nn.Dropout(0.3)
+        self.classifier = nn.Linear(self.bert.config.hidden_size, n_classes)
+    
+    def forward(self, input_ids, attention_mask):
+        # Pasar por BERT
+        outputs = self.bert(
+            input_ids=input_ids,
+            attention_mask=attention_mask
+        )
+        
+        # Usar el output del token [CLS]
+        pooled_output = outputs.pooler_output
+        
+        # Dropout y clasificación
+        output = self.dropout(pooled_output)
+        logits = self.classifier(output)
+        
+        return logits
+
+
+# === TU TAREA: Implementar estas funciones ===
+
+def train_epoch(model, dataloader, optimizer, criterion, device):
+    """
+    Entrenar una época.
+    
+    TODO:
+    1. Poner modelo en modo entrenamiento
+    2. Iterar sobre batches
+    3. Forward pass
+    4. Calcular pérdida
+    5. Backward pass
+    6. Actualizar pesos
+    7. Retornar pérdida promedio
+    """
+    # TU CÓDIGO AQUÍ
+    pass
+
+
+def evaluate(model, dataloader, criterion, device):
+    """
+    Evaluar el modelo.
+    
+    TODO:
+    1. Poner modelo en modo evaluación
+    2. Desactivar gradientes
+    3. Calcular pérdida y precisión
+    4. Retornar métricas
+    """
+    # TU CÓDIGO AQUÍ
+    pass
+
+
+def main():
+    # Datos de ejemplo
+    # TODO: Reemplaza con un dataset real como IMDb reviews
+    texts = [
+        "This movie was amazing! I loved every minute of it.",
+        "Terrible film. Waste of time and money.",
+        "Great acting and wonderful story. Highly recommend!",
+        "Boring and predictable. Would not watch again.",
+        "Masterpiece! One of the best films I've ever seen.",
+        "Awful. The plot made no sense.",
+        # ... Añade más datos aquí
+    ]
+    
+    labels = [1, 0, 1, 0, 1, 0]  # 1 = positivo, 0 = negativo
+    
+    # Configuración
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    batch_size = 8
+    epochs = 5
+    learning_rate = 2e-5
+    
+    # Tokenizer
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+    
+    # TODO: 
+    # 1. Dividir datos en train/val
+    # 2. Crear datasets y dataloaders
+    # 3. Crear modelo
+    # 4. Definir optimizador y criterion
+    # 5. Loop de entrenamiento
+    # 6. Evaluar después de cada época
+    # 7. Guardar mejor modelo
+    
+    print("¡Completa la implementación!")
+
+
+if __name__ == '__main__':
+    main()</code></pre>
+
+        <h2>✅ Criterios de Éxito</h2>
+        <ul>
+            <li>Accuracy > 80% en validación</li>
+            <li>Implementar guardado del mejor modelo</li>
+            <li>Visualizar curvas de pérdida</li>
+            <li>Probar con 5 reseñas nuevas</li>
+        </ul>
+
+        <h2>💡 Pistas</h2>
+        <ul>
+            <li>Usa learning rate pequeño (2e-5) para fine-tuning</li>
+            <li>Considera usar warmup en el optimizador</li>
+            <li>El dataset IMDb está disponible en <code>datasets</code> library</li>
+        </ul>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+</html>

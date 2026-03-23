@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redes Transformers - Guía Comprensible</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>Redes Transformers - Guía Comprensible</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>1. ¿Qué es un Transformer y por qué revolucionó la IA?</h1>
+        
+        <h2>1.1 La Revolución Silenciosa</h2>
+        
+        <p>Imagina que tienes que leer un libro de 500 páginas para responder una pregunta. ¿Cómo lo harías?</p>
+        
+        <p><strong>Antes de los Transformers (como las RNNs):</strong> Tenías que leer página por página, desde la primera hasta la última, recordando todo en tu cabeza. Si la información importante estaba en la página 1 y la página 500, tenías que mantener esa conexión en tu memoria todo el tiempo. Agotador y propenso a errores, ¿verdad?</p>
+        
+        <p><strong>Con Transformers:</strong> Puedes abrir el libro en cualquier página que quieras, saltar entre capítulos, leer varias páginas simultáneamente, y decidir qué partes son importantes para tu pregunta. Es como tener múltiples marcadores y poder comparar instantáneamente cualquier parte del libro con cualquier otra.</p>
+        
+        <p>Esta es la esencia del Transformer: <strong>atención global instantánea</strong>.</p>
+        
+        <div class="nota-importante">
+            <p><strong>💡 Analogía Central: La Biblioteca vs. La Línea de Montaje</strong></p>
+            
+            <p><strong>RNN (línea de montaje):</strong> Es como una fábrica donde cada trabajador pasa información al siguiente en secuencia. Si el Trabajador #1 tiene información importante para el Trabajador #100, tiene que pasar por 98 trabajadores intermedios. La información se degrada y se olvida.</p>
+            
+            <p><strong>Transformer (biblioteca con índice mágico):</strong> Es como una biblioteca donde cada libro puede instantáneamente consultar cualquier otro libro. Si el Libro A necesita información del Libro Z, simplemente la busca directamente. No hay intermediarios, no hay degradación.</p>
+        </div>
+        
+        <h2>1.2 El Problema que Resolvieron los Transformers</h2>
+        
+        <p>Antes del paper "Attention is All You Need" (2017), los modelos de lenguaje tenían tres problemas fundamentales:</p>
+        
+        <p><strong>Problema 1: Memoria de corto plazo</strong></p>
+        
+        <pre><code class="language-plaintext">Texto: "El perro que mi vecino compró hace tres años en la tienda 
+        de mascotas del centro comercial es muy amigable."
+
+Pregunta: ¿Qué es amigable?</code></pre>
+        
+        <p>Los modelos antiguos (RNN/LSTM) tenían problemas conectando "el perro" (al principio) con "es amigable" (al final) porque había demasiadas palabras en el medio. Es como ese juego del teléfono descompuesto: el mensaje se distorsiona.</p>
+        
+        <p><strong>Problema 2: Procesamiento secuencial lento</strong></p>
+        
+        <p>Imagina tener que leer palabra por palabra, una tras otra, sin poder adelantarte. No puedes procesar nada en paralelo. Los Transformers permiten procesar todas las palabras simultáneamente.</p>
+        
+        <p><strong>Problema 3: No sabían qué era importante</strong></p>
+        
+        <p>Lee esta oración:</p>
+        
+        <pre><code class="language-plaintext">"El banco estaba lleno, así que me senté en el banco del parque."</code></pre>
+        
+        <p>La palabra "banco" aparece dos veces pero con significados completamente diferentes. Los modelos antiguos trataban ambas igual. Los Transformers pueden distinguir basándose en el contexto completo.</p>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+</html>

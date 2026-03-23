@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redes Transformers - Guía Comprensible</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>Redes Transformers - Guía Comprensible</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>3. Juntando Todo: El Transformer Completo</h1>
+        
+        <p>Ahora que entendemos los ingredientes, veamos cómo se combinan en la arquitectura completa.</p>
+        
+        <h2>3.1 Encoder-Decoder: Los Dos Cerebros del Transformer</h2>
+        
+        <p>El Transformer original (para traducción) tiene dos partes:</p>
+        
+        <div class="nota-importante">
+            <p><strong>🗣️ Analogía: Intérprete Simultáneo</strong></p>
+            
+            <p><strong>Encoder (Comprensión):</strong> Es como el oído y cerebro del intérprete que ESCUCHA y COMPRENDE completamente la oración en inglés antes de empezar a hablar.</p>
+            
+            <p><strong>Decoder (Generación):</strong> Es como la boca del intérprete que GENERA la traducción en español palabra por palabra, consultando constantemente su comprensión del original.</p>
+            
+            <pre><code class="language-plaintext">Entrada en inglés: "The cat sleeps"
+         ↓
+    [ENCODER] ← Comprende toda la oración
+         ↓
+   Representación interna profunda
+         ↓
+    [DECODER] ← Genera palabra por palabra
+         ↓
+Salida en español: "El gato duerme"</code></pre>
+        </div>
+        
+        <h2>3.2 Implementación del Transformer Completo</h2>
+        
+        <pre><code class="language-python">class Transformer(nn.Module):
+    """
+    Transformer completo para traducción.
+    Versión simplificada y comentada.
+    """
+    def __init__(
+        self,
+        src_vocab_size,      # Tamaño del vocabulario de origen
+        tgt_vocab_size,      # Tamaño del vocabulario objetivo
+        d_model=512,         # Dimensión de embeddings
+        num_heads=8,         # Número de cabezas de atención
+        num_layers=6,        # Número de capas encoder/decoder
+        d_ff=2048,           # Dimensión de feed-forward
+        dropout=0.1,         # Tasa de dropout
+        max_len=5000         # Longitud máxima de secuencia
+    ):
+        super().__init__()
+        
+        self.d_model = d_model
+        
+        # === EMBEDDINGS ===
+        self.src_embedding = nn.Embedding(src_vocab_size, d_model)
+        self.tgt_embedding = nn.Embedding(tgt_vocab_size, d_model)
+        
+        # === POSITIONAL ENCODING ===
+        self.pos_encoding = PositionalEncoding(d_model, max_len)
+        
+        # === ENCODER ===
+        self.encoder_layers = nn.ModuleList([
+            TransformerBlock(d_model, num_heads, d_ff, dropout)
+            for _ in range(num_layers)
+        ])
+        
+        # === DECODER ===
+        self.decoder_layers = nn.ModuleList([
+            DecoderBlock(d_model, num_heads, d_ff, dropout)
+            for _ in range(num_layers)
+        ])
+        
+        # === PROYECCIÓN FINAL ===
+        self.output_projection = nn.Linear(d_model, tgt_vocab_size)
+        
+        self.dropout = nn.Dropout(dropout)
+    
+    def encode(self, src, src_mask=None):
+        """
+        Procesar secuencia de entrada (inglés).
+        
+        src: [batch, src_len] - IDs de palabras
+        src_mask: [batch, 1, 1, src_len] - Máscara de padding
+        """
+        # 1. Embedding
+        x = self.src_embedding(src)  # [batch, src_len, d_model]
+        
+        # 2. Escalar (por alguna razón ayuda)
+        x = x * torch.sqrt(torch.tensor(self.d_model, dtype=torch.float32))
+        
+        # 3. Añadir positional encoding
+        x = self.pos_encoding(x)
+        x = self.dropout(x)
+        
+        # 4. Pasar por todas las capas del encoder
+        for layer in self.encoder_layers:
+            x = layer(x, src_mask)
+        
+        return x
+    
+    def decode(self, tgt, encoder_output, src_mask=None, tgt_mask=None):
+        """
+        Generar secuencia de salida (español).
+        
+        tgt: [batch, tgt_len] - IDs de palabras (hasta ahora)
+        encoder_output: [batch, src_len, d_model] - Del encoder
+        src_mask: Máscara de padding del source
+        tgt_mask: Máscara causal del target
+        """
+        # 1. Embedding
+        x = self.tgt_embedding(tgt)  # [batch, tgt_len, d_model]
+        x = x * torch.sqrt(torch.tensor(self.d_model, dtype=torch.float32))
+        
+        # 2. Positional encoding
+        x = self.pos_encoding(x)
+        x = self.dropout(x)
+        
+        # 3. Pasar por todas las capas del decoder
+        for layer in self.decoder_layers:
+            x = layer(x, encoder_output, src_mask, tgt_mask)
+        
+        return x
+    
+    def forward(self, src, tgt):
+        """
+        Forward pass completo.
+        
+        src: [batch, src_len] - Oración en inglés
+        tgt: [batch, tgt_len] - Oración en español (para entrenamiento)
+        """
+        # Crear máscaras
+        src_mask = self.create_padding_mask(src)
+        tgt_mask = self.create_causal_mask(tgt)
+        
+        # Encoder: comprender el inglés
+        encoder_output = self.encode(src, src_mask)
+        
+        # Decoder: generar el español
+        decoder_output = self.decode(tgt, encoder_output, src_mask, tgt_mask)
+        
+        # Proyectar a vocabulario
+        logits = self.output_projection(decoder_output)
+        
+        return logits
+    
+    def create_padding_mask(self, seq):
+        """Máscara para ignorar tokens de padding (0)"""
+        # seq: [batch, seq_len]
+        return (seq != 0).unsqueeze(1).unsqueeze(2)  # [batch, 1, 1, seq_len]
+    
+    def create_causal_mask(self, seq):
+        """Máscara triangular: solo ver palabras anteriores"""
+        seq_len = seq.size(1)
+        # Crear triángulo inferior
+        mask = torch.tril(torch.ones(seq_len, seq_len, device=seq.device))
+        return mask.unsqueeze(0).unsqueeze(0)  # [1, 1, seq_len, seq_len]
+
+
+class DecoderBlock(nn.Module):
+    """
+    Bloque del Decoder (diferente del Encoder).
+    Tiene 3 sub-capas en lugar de 2.
+    """
+    def __init__(self, d_model, num_heads, d_ff, dropout=0.1):
+        super().__init__()
+        
+        # 1. Self-attention (masked)
+        self.self_attention = MultiHeadAttention(d_model, num_heads)
+        
+        # 2. Cross-attention (con encoder output)
+        self.cross_attention = MultiHeadAttention(d_model, num_heads)
+        
+        # 3. Feed-forward
+        self.feed_forward = FeedForward(d_model, d_ff, dropout)
+        
+        # Normalizaciones
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+        self.norm3 = nn.LayerNorm(d_model)
+        
+        self.dropout1 = nn.Dropout(dropout)
+        self.dropout2 = nn.Dropout(dropout)
+        self.dropout3 = nn.Dropout(dropout)
+    
+    def forward(self, x, encoder_output, src_mask=None, tgt_mask=None):
+        # 1. Self-attention (mirar palabras ya generadas)
+        self_attn_output = self.self_attention(x, x, x, tgt_mask)
+        x = x + self.dropout1(self_attn_output)
+        x = self.norm1(x)
+        
+        # 2. Cross-attention (mirar la oración original)
+        cross_attn_output = self.cross_attention(
+            query=x,                    # Lo que llevamos del español
+            key=encoder_output,         # El inglés completo
+            value=encoder_output,       # El inglés completo
+            mask=src_mask
+        )
+        x = x + self.dropout2(cross_attn_output)
+        x = self.norm2(x)
+        
+        # 3. Feed-forward
+        ff_output = self.feed_forward(x)
+        x = x + self.dropout3(ff_output)
+        x = self.norm3(x)
+        
+        return x
+
+
+class PositionalEncoding(nn.Module):
+    """Codificación de posición sinusoidal"""
+    def __init__(self, d_model, max_len=5000):
+        super().__init__()
+        
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-np.log(10000.0) / d_model))
+        
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        
+        pe = pe.unsqueeze(0)  # [1, max_len, d_model]
+        self.register_buffer('pe', pe)
+    
+    def forward(self, x):
+        # x: [batch, seq_len, d_model]
+        return x + self.pe[:, :x.size(1), :]</code></pre>
+    </section>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+</html>
