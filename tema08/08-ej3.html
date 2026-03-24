@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicio 3: Traductor Inglés-Español</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>Ejercicio 3: Traductor Inglés-Español</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>Ejercicio 3: Traductor Inglés-Español</h1>
+        
+        <p><strong>Nivel:</strong> Intermedio-Avanzado</p>
+
+        <h2>🎯 Objetivo</h2>
+        <p>Construir un transformer completo encoder-decoder para traducción automática.</p>
+
+        <h2>📝 Descripción</h2>
+        <p>Implementarás el Transformer original del paper <em>"Attention is All You Need"</em>. Aprenderás:</p>
+        <ul>
+            <li>Arquitectura encoder-decoder</li>
+            <li>Cross-attention</li>
+            <li>Beam search para generación</li>
+        </ul>
+
+        <h2>💻 Esqueleto del Código</h2>
+
+        <h3>Clase Principal: TransformerTranslator</h3>
+        <pre><code class="language-python">import torch
+import torch.nn as nn
+import math
+
+# === TU TAREA: Implementar el Transformer completo ===
+
+class TransformerTranslator(nn.Module):
+    def __init__(
+        self,
+        src_vocab_size,
+        tgt_vocab_size,
+        d_model=512,
+        n_heads=8,
+        n_encoder_layers=6,
+        n_decoder_layers=6,
+        d_ff=2048,
+        dropout=0.1,
+        max_len=5000
+    ):
+        super().__init__()
+        
+        # TODO: Implementar todos los componentes
+        # Referencia: la clase Transformer que di en la explicación principal
+        
+        pass
+    
+    def encode(self, src, src_mask):
+        """Encoder"""
+        # TODO
+        pass
+    
+    def decode(self, tgt, memory, src_mask, tgt_mask):
+        """Decoder"""
+        # TODO
+        pass
+    
+    def forward(self, src, tgt):
+        """Forward pass completo"""
+        # TODO
+        pass</code></pre>
+
+        <h3>Beam Search (Desafío Adicional)</h3>
+        <pre><code class="language-python"># === BEAM SEARCH (Desafío adicional) ===
+
+class BeamSearchTranslator:
+    """
+    Implementar beam search para mejor generación.
+    
+    Beam search mantiene las K mejores hipótesis en cada paso,
+    en lugar de solo elegir la palabra más probable (greedy).
+    """
+    def __init__(self, model, beam_size=5, max_len=100):
+        self.model = model
+        self.beam_size = beam_size
+        self.max_len = max_len
+    
+    @torch.no_grad()
+    def translate(self, src, src_vocab, tgt_vocab):
+        """
+        TODO: Implementar beam search
+        
+        Algoritmo:
+        1. Iniciar con K hipótesis (todas empiezan con <SOS>)
+        2. Para cada hipótesis:
+           - Generar siguiente token
+           - Tomar top-K tokens más probables
+           - Crear K nuevas hipótesis
+        3. Mantener solo las top-K hipótesis totales
+        4. Repetir hasta generar <EOS> o alcanzar max_len
+        5. Retornar hipótesis con mayor probabilidad
+        """
+        pass</code></pre>
+
+        <h3>Dataset y Entrenamiento</h3>
+        <pre><code class="language-python"># === DATASET Y ENTRENAMIENTO ===
+
+def prepare_translation_data():
+    """
+    TODO: Preparar datos para traducción
+    
+    Opciones de datasets:
+    - Multi30k (pequeño, bueno para empezar)
+    - WMT14 (más grande y desafiante)
+    - OPUS (muchos idiomas)
+    
+    Usa la biblioteca 'datasets' de Hugging Face:
+    from datasets import load_dataset
+    dataset = load_dataset('wmt14', 'de-en')
+    """
+    pass
+
+
+def train_translator():
+    """
+    TODO: Implementar loop de entrenamiento completo
+    
+    Incluye:
+    - Label smoothing (ayuda con overfitting)
+    - Learning rate scheduling (warmup + decay)
+    - Gradient clipping
+    - Checkpointing
+    - Evaluación con BLEU score
+    """
+    pass</code></pre>
+
+        <h3>Evaluación</h3>
+        <pre><code class="language-python"># === EVALUACIÓN ===
+
+def calculate_bleu(predictions, references):
+    """
+    TODO: Calcular BLEU score
+    
+    BLEU mide qué tan similar es la traducción generada
+    a las traducciones de referencia.
+    
+    Puedes usar la librería sacrebleu:
+    from sacrebleu import corpus_bleu
+    """
+    pass
+
+
+if __name__ == '__main__':
+    # Tu implementación principal aquí
+    pass</code></pre>
+
+        <h2>✅ Criterios de Éxito</h2>
+        <ul>
+            <li>BLEU score &gt; 25 en dataset de validación</li>
+            <li>Implementar beam search funcional</li>
+            <li>Traducir correctamente oraciones de prueba</li>
+            <li>Visualizar attention weights</li>
+        </ul>
+
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+</html>

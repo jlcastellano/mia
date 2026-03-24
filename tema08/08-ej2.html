@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Texto Simple con GPT desde Cero</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>Ejercicio 2: Generador de Texto Simple con GPT desde Cero</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>Generador de Texto Simple con GPT desde Cero (Nivel: Intermedio)</h1>
+        
+        <h2>🎯 Objetivo</h2>
+        <p>Implementar un mini-GPT desde cero y entrenarlo para generar texto coherente en el estilo de Shakespeare.</p>
+
+        <h2>📝 Descripción</h2>
+        <p>Construirás tu propio GPT (pequeño) entendiendo cada componente. Aprenderás:</p>
+        <ul>
+            <li>Arquitectura de GPT</li>
+            <li>Entrenamiento autoregresivo</li>
+            <li>Generación de texto</li>
+        </ul>
+
+        <h2>💻 Código Base</h2>
+        
+        <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+# === TU TAREA: Completar las partes marcadas como TODO ===
+
+class Head(nn.Module):
+    """Una cabeza de self-attention"""
+    def __init__(self, head_size, n_embd, block_size, dropout=0.1):
+        super().__init__()
+        self.key = nn.Linear(n_embd, head_size, bias=False)
+        self.query = nn.Linear(n_embd, head_size, bias=False)
+        self.value = nn.Linear(n_embd, head_size, bias=False)
+        
+        # Máscara causal
+        self.register_buffer(
+            'tril',
+            torch.tril(torch.ones(block_size, block_size))
+        )
+        self.dropout = nn.Dropout(dropout)
+    
+    def forward(self, x):
+        B, T, C = x.shape  # batch, time, channels
+        
+        # TODO: 
+        # 1. Calcular k, q, v
+        # 2. Calcular attention scores: (Q @ K^T) / sqrt(head_size)
+        # 3. Aplicar máscara causal (self.tril)
+        # 4. Aplicar softmax
+        # 5. Aplicar dropout
+        # 6. Multiplicar por V
+        # 7. Retornar resultado
+        
+        pass  # Reemplaza con tu implementación
+
+
+class MultiHeadAttention(nn.Module):
+    """Múltiples cabezas de attention en paralelo"""
+    def __init__(self, num_heads, head_size, n_embd, block_size, dropout=0.1):
+        super().__init__()
+        
+        # TODO:
+        # 1. Crear lista de Heads
+        # 2. Crear proyección final
+        # 3. Dropout
+        
+        pass  # Completa la implementación
+    
+    def forward(self, x):
+        # TODO:
+        # 1. Aplicar todas las cabezas
+        # 2. Concatenar resultados
+        # 3. Proyectar
+        pass
+
+
+class FeedForward(nn.Module):
+    """Red feed-forward simple"""
+    def __init__(self, n_embd, dropout=0.1):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(n_embd, 4 * n_embd),
+            nn.ReLU(),
+            nn.Linear(4 * n_embd, n_embd),
+            nn.Dropout(dropout)
+        )
+    
+    def forward(self, x):
+        return self.net(x)
+
+
+class Block(nn.Module):
+    """Bloque Transformer"""
+    def __init__(self, n_embd, n_head, block_size, dropout=0.1):
+        super().__init__()
+        head_size = n_embd // n_head
+        
+        # TODO:
+        # 1. Self-attention
+        # 2. Feed-forward
+        # 3. Layer norms
+        
+        pass
+    
+    def forward(self, x):
+        # TODO:
+        # Implementar con residual connections
+        # x = x + self.sa(self.ln1(x))
+        # x = x + self.ffwd(self.ln2(x))
+        pass
+
+
+class MiniGPT(nn.Module):
+    """GPT en miniatura"""
+    def __init__(self, vocab_size, n_embd=384, n_head=6, n_layer=6, 
+                 block_size=256, dropout=0.1):
+        super().__init__()
+        
+        self.block_size = block_size
+        
+        # TODO:
+        # 1. Token embedding table
+        # 2. Position embedding table
+        # 3. Bloques de transformer (n_layer veces)
+        # 4. Layer norm final
+        # 5. Linear head para predicción
+        
+        self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
+        # ... completa el resto
+        
+        # Inicialización de pesos
+        self.apply(self._init_weights)
+    
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+            if module.bias is not None:
+                torch.nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+    
+    def forward(self, idx, targets=None):
+        """
+        idx: [B, T] - índices de tokens
+        targets: [B, T] - targets para calcular pérdida (opcional)
+        """
+        B, T = idx.shape
+        
+        # TODO:
+        # 1. Token embeddings
+        # 2. Position embeddings
+        # 3. Sumar ambos
+        # 4. Pasar por bloques
+        # 5. Layer norm final
+        # 6. Proyectar a vocabulario
+        
+        logits = None  # Reemplaza con tu cálculo
+        
+        # Calcular pérdida si se proporcionan targets
+        loss = None
+        if targets is not None:
+            B, T, C = logits.shape
+            logits_view = logits.view(B*T, C)
+            targets_view = targets.view(B*T)
+            loss = F.cross_entropy(logits_view, targets_view)
+        
+        return logits, loss
+    
+    @torch.no_grad()
+    def generate(self, idx, max_new_tokens, temperature=1.0):
+        """
+        Generar tokens nuevos.
+        
+        idx: [B, T] - contexto inicial
+        max_new_tokens: cuántos tokens generar
+        """
+        self.eval()
+        
+        for _ in range(max_new_tokens):
+            # TODO:
+            # 1. Recortar contexto si excede block_size
+            # 2. Obtener predicciones
+            # 3. Tomar último time step
+            # 4. Aplicar temperatura
+            # 5. Samplear siguiente token
+            # 6. Añadir a secuencia
+            
+            pass  # Completa la implementación
+        
+        return idx
+
+
+# === ENTRENAMIENTO ===
+
+def get_batch(data, block_size, batch_size):
+    """Generar un batch aleatorio"""
+    ix = torch.randint(len(data) - block_size, (batch_size,))
+    x = torch.stack([data[i:i+block_size] for i in ix])
+    y = torch.stack([data[i+1:i+block_size+1] for i in ix])
+    return x, y
+
+
+def train_mini_gpt():
+    # Cargar datos (Shakespeare)
+    with open('shakespeare.txt', 'r', encoding='utf-8') as f:
+        text = f.read()
+    
+    # TODO:
+    # 1. Crear vocabulario (char-level es más simple)
+    # 2. Encode/decode functions
+    # 3. Convertir texto a tensores
+    # 4. Split train/val
+    # 5. Crear modelo
+    # 6. Loop de entrenamiento
+    # 7. Generar texto cada N iteraciones
+    # 8. Guardar checkpoints
+    
+    print("Implementa el entrenamiento completo!")
+
+
+if __name__ == '__main__':
+    train_mini_gpt()</code></pre>
+
+        <h2>✅ Criterios de Éxito</h2>
+        <ul>
+            <li>El modelo genera texto sintácticamente coherente</li>
+            <li>Pérdida de entrenamiento menor a 2.0</li>
+            <li>Implementar sampling con temperatura</li>
+            <li>Generar al menos 500 caracteres coherentes</li>
+        </ul>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+</html>
