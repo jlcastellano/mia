@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicio 4: Clasificador de Imágenes con Vision Transformer</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>Ejercicio 4: Clasificador de Imágenes con Vision Transformer</div>
+    </header>
+
+    <section class="contenido-didactico">
+        <h1>🎯 Objetivo</h1>
+        <p>Implementar y entrenar un Vision Transformer (ViT) para clasificación de imágenes en CIFAR-10.</p>
+
+        <h2>📝 Descripción</h2>
+        <p>Aplicarás transformers a visión computacional. Aprenderás:</p>
+        <ul>
+            <li>Cómo adaptar transformers para imágenes</li>
+            <li>Data augmentation para ViT</li>
+            <li>Comparación con CNNs</li>
+        </ul>
+
+        <h2>💻 Código Base</h2>
+
+        <h3>Importaciones y Configuración Inicial</h3>
+        <pre><code class="language-python">import torch
+import torch.nn as nn
+import torchvision
+import torchvision.transforms as transforms
+from torch.utils.data import DataLoader</code></pre>
+
+        <h3>Clase PatchEmbedding</h3>
+        <p>Convertir imagen en secuencia de patch embeddings.</p>
+        <p><strong>Transformación:</strong></p>
+        <ul>
+            <li>Imagen: <code>[B, 3, 32, 32]</code> (CIFAR-10)</li>
+            <li>Patches: <code>[B, num_patches, embed_dim]</code></li>
+        </ul>
+
+        <pre><code class="language-python">class PatchEmbedding(nn.Module):
+    """
+    Convertir imagen en secuencia de patch embeddings.
+    
+    Imagen: [B, 3, 32, 32]  (CIFAR-10)
+    Patches: [B, num_patches, embed_dim]
+    """
+    def __init__(self, img_size=32, patch_size=4, in_channels=3, embed_dim=256):
+        super().__init__()
+        
+        # TODO:
+        # 1. Calcular número de patches
+        # 2. Crear proyección (Conv2d funciona bien)
+        # 3. Inicializar
+        
+        self.num_patches = (img_size // patch_size) ** 2
+        
+        # Proyección: usar convolución es eficiente
+        self.projection = nn.Conv2d(
+            in_channels, 
+            embed_dim, 
+            kernel_size=patch_size, 
+            stride=patch_size
+        )
+    
+    def forward(self, x):
+        # x: [B, 3, 32, 32]
+        
+        # TODO:
+        # 1. Aplicar proyección
+        # 2. Flatten espacial
+        # 3. Transponer a [B, num_patches, embed_dim]
+        
+        pass</code></pre>
+
+        <h3>Clase VisionTransformer</h3>
+        <pre><code class="language-python">class VisionTransformer(nn.Module):
+    def __init__(
+        self,
+        img_size=32,
+        patch_size=4,
+        in_channels=3,
+        num_classes=10,
+        embed_dim=256,
+        depth=6,
+        num_heads=8,
+        mlp_ratio=4,
+        dropout=0.1
+    ):
+        super().__init__()
+        
+        # TODO: Implementar componentes
+        # 1. Patch embedding
+        # 2. CLS token (aprendible)
+        # 3. Position embeddings (aprendibles)
+        # 4. Transformer encoder blocks
+        # 5. MLP head para clasificación
+        
+        self.patch_embed = PatchEmbedding(img_size, patch_size, in_channels, embed_dim)
+        
+        # CLS token
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
+        
+        # Position embeddings
+        num_patches = self.patch_embed.num_patches
+        self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 1, embed_dim))
+        
+        # TODO: Completa el resto
+        pass
+    
+    def forward(self, x):
+        """
+        x: [B, 3, 32, 32]
+        return: [B, num_classes]
+        """
+        
+        # TODO: Implementar forward pass
+        # 1. Patch embedding
+        # 2. Añadir CLS token
+        # 3. Añadir position embedding
+        # 4. Pasar por transformer blocks
+        # 5. Extraer CLS token
+        # 6. Clasificar
+        
+        pass</code></pre>
+
+        <h3>Data Augmentation</h3>
+        <p>Data augmentation es <strong>CRUCIAL</strong> para ViT. ViT necesita más datos que CNNs tradicionales.</p>
+
+        <pre><code class="language-python">def get_augmentation_transform(train=True):
+    """
+    Data augmentation es CRUCIAL para ViT.
+    ViT necesita más datos que CNNs tradicionales.
+    
+    TODO: Implementar augmentations efectivas
+    """
+    if train:
+        return transforms.Compose([
+            # TODO: Añade augmentations
+            # Sugerencias:
+            # - RandomCrop con padding
+            # - RandomHorizontalFlip
+            # - ColorJitter
+            # - RandAugment (muy efectivo)
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+    else:
+        return transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])</code></pre>
+
+        <h3>Función de Entrenamiento</h3>
+        <p><strong>Puntos importantes:</strong></p>
+        <ul>
+            <li>ViT necesita más regularización que CNNs</li>
+            <li>Usar learning rate warmup</li>
+            <li>Weight decay es importante</li>
+            <li>Entrenar por más épocas</li>
+        </ul>
+
+        <pre><code class="language-python">def train_vit():
+    """
+    TODO: Implementar entrenamiento completo
+    
+    Puntos importantes:
+    - ViT necesita más regularización que CNNs
+    - Usar learning rate warmup
+    - Weight decay es importante
+    - Entrenar por más épocas
+    """
+    
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    # Cargar CIFAR-10
+    train_dataset = torchvision.datasets.CIFAR10(
+        root='./data',
+        train=True,
+        download=True,
+        transform=get_augmentation_transform(train=True)
+    )
+    
+    test_dataset = torchvision.datasets.CIFAR10(
+        root='./data',
+        train=False,
+        download=True,
+        transform=get_augmentation_transform(train=False)
+    )
+    
+    train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
+    
+    # TODO:
+    # 1. Crear modelo
+    # 2. Definir optimizador (AdamW funciona mejor)
+    # 3. Learning rate scheduler con warmup
+    # 4. Loop de entrenamiento
+    # 5. Evaluación
+    # 6. Logging y checkpointing
+    
+    print("Implementa el entrenamiento!")</code></pre>
+
+        <h3>Comparación con CNN</h3>
+        <pre><code class="language-python">class SimpleCNN(nn.Module):
+    """CNN baseline para comparar"""
+    def __init__(self, num_classes=10):
+        super().__init__()
+        # TODO: Implementar CNN simple
+        # Para comparar cuánto mejor/peor es ViT
+        pass
+
+
+def compare_models():
+    """
+    TODO: Entrenar ViT y CNN side-by-side
+    
+    Compara:
+    - Accuracy
+    - Tiempo de entrenamiento
+    - Número de parámetros
+    - Eficiencia de datos (rendimiento con pocos datos)
+    """
+    pass
+
+
+if __name__ == '__main__':
+    train_vit()</code></pre>
+
+        <h2>✅ Criterios de Éxito</h2>
+        <ul>
+            <li>Accuracy &gt; 85% en CIFAR-10</li>
+            <li>Implementar mixup/cutmix augmentation</li>
+            <li>Visualizar patches atendidos</li>
+            <li>Comparar con ResNet baseline</li>
+        </ul>
+
+        <h2>💡 Tips</h2>
+        <ul>
+            <li>ViT funciona mejor con imágenes grandes; para CIFAR-10 usa patches pequeños (4×4)</li>
+            <li>Regularización fuerte es esencial</li>
+            <li>Considera usar pre-training si tienes recursos</li>
+        </ul>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</body>
+</html>
